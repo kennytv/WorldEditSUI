@@ -15,7 +15,7 @@ public final class DrawManager {
         drawers.put("sphere", ellipsoidDrawer);
         drawers.put("ellipsoid", ellipsoidDrawer);
         drawers.put("Cylinder", new CylinderDrawer(plugin));
-        //drawers.put("2Dx1D polygon", new PolygonDrawer(plugin));
+        drawers.put("2Dx1D polygon", new PolygonalDrawer(plugin));
         /*
         "2Dx1D polygon"
         "Convex Polyhedron"

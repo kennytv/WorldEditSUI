@@ -34,13 +34,15 @@ particle-expiry:
   expire-message: true
 
 # If set to 'none', every player will have their selection displayed.
-# Else, only players with the set permission will have particles as their selection.
+# Else, only players with the set permission will have particles for their selection.
 permission: "none"
 
 # If set to true, the particles will be sent to all players,
 # rather than just to the player having the WorldEdit selection.
 # Might be useful when building as a group.
 send-particles-to-all: false
+# Particle to be shown for other player's selections.
+other-player-particle: FLAME
 
 # Recommended to have this enabled, as you'd else miss out on new features and overall improvements.
 update-checks: true

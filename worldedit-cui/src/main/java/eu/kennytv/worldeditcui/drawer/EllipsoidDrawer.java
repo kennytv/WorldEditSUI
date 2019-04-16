@@ -3,10 +3,10 @@ package eu.kennytv.worldeditcui.drawer;
 import com.sk89q.worldedit.regions.EllipsoidRegion;
 import com.sk89q.worldedit.regions.Region;
 import eu.kennytv.worldeditcui.WorldEditCUIPlugin;
+import eu.kennytv.worldeditcui.compat.SimpleVector;
 import eu.kennytv.worldeditcui.drawer.base.DrawerBase;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
-import org.bukkit.util.Vector;
 
 public final class EllipsoidDrawer extends DrawerBase {
 
@@ -16,13 +16,13 @@ public final class EllipsoidDrawer extends DrawerBase {
 
     @Override
     public void draw(final Player player, final Region region) {
-        final Vector radius = plugin.getRegionHelper().getRadius((EllipsoidRegion) region, 1.5, 1.4, 1.5);
+        final SimpleVector radius = plugin.getRegionHelper().getRadius((EllipsoidRegion) region, 1.5, 1.4, 1.5);
         final int width = (int) radius.getX();
         final int length = (int) radius.getZ();
         final int height = (int) radius.getY();
         final int max = Math.max(length, width);
 
-        final Vector center = plugin.getRegionHelper().getCenter(region, 0.5, 0.5, 0.5);
+        final SimpleVector center = plugin.getRegionHelper().getCenter(region, 0.5, 0.5, 0.5);
         final Location location = new Location(plugin.getServer().getWorld(region.getWorld().getName()), center.getX(), center.getY(), center.getZ());
         final double heightInterval = Math.PI / (settings.getParticlesPerBlock() * height);
         final double wideInterval = Math.PI / (settings.getParticlesPerBlock() * max / 10D);

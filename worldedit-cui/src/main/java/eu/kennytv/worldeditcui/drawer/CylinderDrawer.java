@@ -4,10 +4,10 @@ import com.sk89q.worldedit.regions.CylinderRegion;
 import com.sk89q.worldedit.regions.FlatRegion;
 import com.sk89q.worldedit.regions.Region;
 import eu.kennytv.worldeditcui.WorldEditCUIPlugin;
+import eu.kennytv.worldeditcui.compat.SimpleVector;
 import eu.kennytv.worldeditcui.drawer.base.DrawerBase;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
-import org.bukkit.util.Vector;
 
 public final class CylinderDrawer extends DrawerBase {
 
@@ -17,7 +17,7 @@ public final class CylinderDrawer extends DrawerBase {
 
     @Override
     public void draw(final Player player, final Region region) {
-        final Vector radius = plugin.getRegionHelper().getRadius((CylinderRegion) region, 1.3, 1.3);
+        final SimpleVector radius = plugin.getRegionHelper().getRadius((CylinderRegion) region, 1.3, 1.3);
         final int width = (int) radius.getX();
         final int length = (int) radius.getZ();
         final int height = (int) radius.getY();
@@ -25,7 +25,7 @@ public final class CylinderDrawer extends DrawerBase {
         final int bottom = ((FlatRegion) region).getMinimumY();
         final int top = ((FlatRegion) region).getMaximumY() + 1;
 
-        final Vector center = plugin.getRegionHelper().getCenter(region, 0.5, 0, 0.5);
+        final SimpleVector center = plugin.getRegionHelper().getCenter(region, 0.5, 0, 0.5);
         final Location location = new Location(plugin.getServer().getWorld(region.getWorld().getName()), center.getX(), bottom, center.getZ());
         final double wideGrid = Math.PI / (settings.getParticlesPerBlock() * max * 2);
         final int heightSpace = (int) (settings.getParticleSpace() * height);

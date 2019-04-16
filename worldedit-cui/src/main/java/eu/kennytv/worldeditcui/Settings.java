@@ -22,6 +22,7 @@ public final class Settings {
     private boolean sendParticlesToAll;
     private ViaParticle particle;
     private ViaParticle copyParticle;
+    private ViaParticle otherParticle;
 
     Settings(final WorldEditCUIPlugin plugin) {
         this.plugin = plugin;
@@ -35,21 +36,10 @@ public final class Settings {
         final YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
 
         wandItem = config.getString("wand", "").toUpperCase().replace("MINECRAFT:", "");
-        final String particleName = config.getString("particle", "FLAME");
-        particle = ViaParticle.getByName(particleName);
-        if (particle == null) {
-            plugin.getLogger().warning("Unknown particle: " + particleName.toUpperCase());
-            plugin.getLogger().warning("Switched to default particle: FLAME");
-            this.particle = ViaParticle.FLAME;
-        }
 
-        final String copyParticleName = config.getString("copy-region-particle", "VILLAGER_HAPPY");
-        copyParticle = ViaParticle.getByName(copyParticleName);
-        if (copyParticle == null) {
-            plugin.getLogger().warning("Unknown particle for copy-region-particle: " + copyParticleName.toUpperCase());
-            plugin.getLogger().warning("Switched to default particle: VILLAGER_HAPPY");
-            this.copyParticle = ViaParticle.VILLAGER_HAPPY;
-        }
+        particle = loadParticle(config, "particle", ViaParticle.FLAME);
+        copyParticle = loadParticle(config, "copy-region-particle", ViaParticle.VILLAGER_HAPPY);
+        otherParticle = loadParticle(config, "other-player-particle", ViaParticle.FLAME);
 
         particlesPerBlock = config.getInt("particles-per-block", 4);
         if (particlesPerBlock < 0.5 || particlesPerBlock > 5) {
@@ -99,6 +89,17 @@ public final class Settings {
                 expiresAfterMillis *= 1000;
             }
         }
+    }
+
+    private ViaParticle loadParticle(final YamlConfiguration config, final String s, final ViaParticle defaultParticle) {
+        final String particleName = config.getString(s, defaultParticle.name());
+        final ViaParticle particle = ViaParticle.getByName(particleName);
+        if (particle == null) {
+            plugin.getLogger().warning("Unknown particle for " + s + ": " + particleName.toUpperCase());
+            plugin.getLogger().warning("Switched to default particle: " + defaultParticle);
+            return defaultParticle;
+        }
+        return particle;
     }
 
     public String getPermission() {
@@ -155,6 +156,10 @@ public final class Settings {
 
     public ViaParticle getCopyParticle() {
         return copyParticle;
+    }
+
+    public ViaParticle getOtherParticle() {
+        return otherParticle;
     }
 
     public String getWandItem() {

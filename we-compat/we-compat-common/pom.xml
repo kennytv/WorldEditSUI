@@ -5,16 +5,18 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>eu.kennytv.worldeditcui</groupId>
-        <artifactId>worldedit-cui-parent</artifactId>
+        <artifactId>we-compat</artifactId>
         <version>1.4-SNAPSHOT</version>
     </parent>
 
-    <packaging>pom</packaging>
-    <artifactId>we-compat</artifactId>
+    <artifactId>we-compat-common</artifactId>
 
-    <modules>
-        <module>we-compat-common</module>
-        <module>we6-compat</module>
-        <module>we7-compat</module>
-    </modules>
+    <dependencies>
+        <dependency>
+            <groupId>com.sk89q.worldedit</groupId>
+            <artifactId>worldedit-bukkit</artifactId>
+            <version>6.1.4-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
 </project>

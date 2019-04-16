@@ -2,10 +2,10 @@ package eu.kennytv.worldeditcui.drawer;
 
 import com.sk89q.worldedit.regions.Region;
 import eu.kennytv.worldeditcui.WorldEditCUIPlugin;
+import eu.kennytv.worldeditcui.compat.SimpleVector;
 import eu.kennytv.worldeditcui.drawer.base.DrawerBase;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
-import org.bukkit.util.Vector;
 
 public final class CuboidDrawer extends DrawerBase {
 
@@ -23,7 +23,7 @@ public final class CuboidDrawer extends DrawerBase {
         final double width = region.getWidth();
         final double length = region.getLength();
         final double height = region.getHeight();
-        final Vector minimumVector = plugin.getRegionHelper().getMinimumPoint(region);
+        final SimpleVector minimumVector = plugin.getRegionHelper().getMinimumPoint(region);
         final Location minimumPoint = new Location(plugin.getServer().getWorld(region.getWorld().getName()),
                 minimumVector.getX(), minimumVector.getY(), minimumVector.getZ());
 

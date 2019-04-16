@@ -10,6 +10,7 @@ import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.regions.RegionSelector;
 import eu.kennytv.worldeditcui.command.WECUICommand;
 import eu.kennytv.worldeditcui.compat.IRegionHelper;
+import eu.kennytv.worldeditcui.compat.SimpleVector;
 import eu.kennytv.worldeditcui.drawer.DrawManager;
 import eu.kennytv.worldeditcui.drawer.base.Drawer;
 import eu.kennytv.worldeditcui.listener.PlayerJoinListener;
@@ -21,7 +22,6 @@ import eu.kennytv.worldeditcui.user.UserManager;
 import org.bukkit.Location;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.util.Vector;
 
 public final class WorldEditCUIPlugin extends JavaPlugin {
     private static final String PREFIX = "§8[§eWorldEditCUI§8] ";
@@ -89,7 +89,7 @@ public final class WorldEditCUIPlugin extends JavaPlugin {
             if (user.isClipboardShown()) {
                 try {
                     final Clipboard clipboard = session.getClipboard().getClipboard();
-                    final Vector origin = regionHelper.getOrigin(clipboard);
+                    final SimpleVector origin = regionHelper.getOrigin(clipboard);
                     final Location location = player.getLocation();
                     final Region region = clipboard.getRegion();
                     final Region shiftedRegion = regionHelper.shift(region, location.getBlockX() - origin.getX(), location.getBlockY() - origin.getY(), location.getBlockZ() - origin.getZ());

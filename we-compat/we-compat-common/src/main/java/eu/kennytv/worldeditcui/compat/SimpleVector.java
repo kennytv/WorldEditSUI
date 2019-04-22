@@ -16,23 +16,28 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package eu.kennytv.worldeditcui.listener;
+package eu.kennytv.worldeditcui.compat;
 
-import eu.kennytv.worldeditcui.user.UserManager;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerQuitEvent;
+public final class SimpleVector {
+    private final double x;
+    private final double y;
+    private final double z;
 
-public final class PlayerQuitListener implements Listener {
-    private final UserManager userManager;
-
-    public PlayerQuitListener(final UserManager userManager) {
-        this.userManager = userManager;
+    public SimpleVector(final double x, final double y, final double z) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
     }
 
-    @EventHandler
-    public void playerQuit(final PlayerQuitEvent event) {
-        userManager.deleteUser(event.getPlayer());
-        userManager.getExpireTimestamps().remove(event.getPlayer().getUniqueId());
+    public double getX() {
+        return x;
+    }
+
+    public double getY() {
+        return y;
+    }
+
+    public double getZ() {
+        return z;
     }
 }

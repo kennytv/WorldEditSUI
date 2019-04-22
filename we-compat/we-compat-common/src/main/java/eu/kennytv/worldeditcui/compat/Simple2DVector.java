@@ -16,23 +16,36 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package eu.kennytv.worldeditcui.listener;
+package eu.kennytv.worldeditcui.compat;
 
-import eu.kennytv.worldeditcui.user.UserManager;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.util.NumberConversions;
 
-public final class PlayerQuitListener implements Listener {
-    private final UserManager userManager;
+public final class Simple2DVector {
+    private final double x;
+    private final double z;
 
-    public PlayerQuitListener(final UserManager userManager) {
-        this.userManager = userManager;
+    public Simple2DVector(final double x, final double z) {
+        this.x = x;
+        this.z = z;
     }
 
-    @EventHandler
-    public void playerQuit(final PlayerQuitEvent event) {
-        userManager.deleteUser(event.getPlayer());
-        userManager.getExpireTimestamps().remove(event.getPlayer().getUniqueId());
+    public double getX() {
+        return x;
+    }
+
+    public double getZ() {
+        return z;
+    }
+
+    public double length() {
+        return Math.sqrt(lengthSquared());
+    }
+
+    public double lengthSquared() {
+        return NumberConversions.square(this.x) + NumberConversions.square(this.z);
+    }
+
+    public Simple2DVector subtract(final Simple2DVector vector) {
+        return new Simple2DVector(this.x - vector.x, this.z - vector.z);
     }
 }

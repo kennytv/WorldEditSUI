@@ -4,16 +4,14 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>eu.kennytv</groupId>
+    <groupId>eu.kennytv.worldeditcui</groupId>
     <artifactId>worldedit-cui-parent</artifactId>
     <packaging>pom</packaging>
-    <version>1.3.1</version>
+    <version>1.4</version>
 
     <modules>
         <module>worldedit-cui</module>
         <module>we-compat</module>
-        <module>we6-compat</module>
-        <module>we7-compat</module>
     </modules>
 
     <properties>
@@ -25,12 +23,12 @@
 
     <repositories>
         <repository>
-            <id>sk89q-repo</id>
-            <url>http://maven.sk89q.com/repo/</url>
-        </repository>
-        <repository>
             <id>enginehub-repo</id>
             <url>https://maven.sk89q.com/artifactory/repo/</url>
+        </repository>
+        <repository>
+            <id>spigotmc-repo</id>
+            <url>https://hub.spigotmc.org/nexus/content/groups/public/</url>
         </repository>
     </repositories>
 

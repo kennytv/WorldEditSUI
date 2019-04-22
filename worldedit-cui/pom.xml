@@ -4,9 +4,9 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>eu.kennytv</groupId>
+        <groupId>eu.kennytv.worldeditcui</groupId>
         <artifactId>worldedit-cui-parent</artifactId>
-        <version>1.3.1</version>
+        <version>1.4</version>
     </parent>
 
     <artifactId>worldedit-cui</artifactId>
@@ -14,25 +14,25 @@
 
     <dependencies>
         <dependency>
-            <groupId>eu.kennytv</groupId>
-            <artifactId>we-compat</artifactId>
+            <groupId>eu.kennytv.worldeditcui</groupId>
+            <artifactId>we-compat-common</artifactId>
             <version>${project.parent.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>eu.kennytv</groupId>
+            <groupId>eu.kennytv.worldeditcui</groupId>
             <artifactId>we6-compat</artifactId>
             <version>${project.parent.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>eu.kennytv</groupId>
+            <groupId>eu.kennytv.worldeditcui</groupId>
             <artifactId>we7-compat</artifactId>
             <version>${project.parent.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>eu.kennytv</groupId>
+            <groupId>eu.kennytv.particlelib</groupId>
             <artifactId>particlelib</artifactId>
             <version>1.0</version>
             <scope>compile</scope>

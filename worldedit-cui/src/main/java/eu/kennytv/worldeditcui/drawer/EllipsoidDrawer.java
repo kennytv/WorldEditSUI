@@ -1,12 +1,30 @@
+/*
+ * WorldEditCUI - https://git.io/wecui
+ * Copyright (C) 2018 KennyTV (https://github.com/KennyTV)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package eu.kennytv.worldeditcui.drawer;
 
 import com.sk89q.worldedit.regions.EllipsoidRegion;
 import com.sk89q.worldedit.regions.Region;
 import eu.kennytv.worldeditcui.WorldEditCUIPlugin;
+import eu.kennytv.worldeditcui.compat.SimpleVector;
 import eu.kennytv.worldeditcui.drawer.base.DrawerBase;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
-import org.bukkit.util.Vector;
 
 public final class EllipsoidDrawer extends DrawerBase {
 
@@ -16,14 +34,14 @@ public final class EllipsoidDrawer extends DrawerBase {
 
     @Override
     public void draw(final Player player, final Region region) {
-        final Vector radius = plugin.getRegionHelper().getRadius((EllipsoidRegion) region, 1.5, 1.4, 1.5);
+        final SimpleVector radius = plugin.getRegionHelper().getRadius((EllipsoidRegion) region, 1.5, 1.4, 1.5);
         final int width = (int) radius.getX();
         final int length = (int) radius.getZ();
         final int height = (int) radius.getY();
         final int max = Math.max(length, width);
 
-        final Vector center = plugin.getRegionHelper().getCenter(region, 0.5, 0.5, 0.5);
-        final Location location = new Location(plugin.getServer().getWorld(region.getWorld().getName()), center.getX(), center.getY(), center.getZ());
+        final SimpleVector center = plugin.getRegionHelper().getCenter(region, 0.5, 0.5, 0.5);
+        final Location location = new Location(player.getWorld(), center.getX(), center.getY(), center.getZ());
         final double heightInterval = Math.PI / (settings.getParticlesPerBlock() * height);
         final double wideInterval = Math.PI / (settings.getParticlesPerBlock() * max / 10D);
         showGrid(player, width, length, height, location, wideInterval, heightInterval);

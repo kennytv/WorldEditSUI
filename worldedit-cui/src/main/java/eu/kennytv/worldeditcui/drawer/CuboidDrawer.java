@@ -1,3 +1,21 @@
+/*
+ * WorldEditCUI - https://git.io/wecui
+ * Copyright (C) 2018 KennyTV (https://github.com/KennyTV)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package eu.kennytv.worldeditcui.drawer;
 
 import com.sk89q.worldedit.regions.Region;
@@ -9,6 +27,7 @@ import org.bukkit.entity.Player;
 
 public final class CuboidDrawer extends DrawerBase {
 
+    //TODO: probably needs a complete rework
     CuboidDrawer(final WorldEditCUIPlugin plugin) {
         super(plugin);
     }
@@ -24,8 +43,7 @@ public final class CuboidDrawer extends DrawerBase {
         final double length = region.getLength();
         final double height = region.getHeight();
         final SimpleVector minimumVector = plugin.getRegionHelper().getMinimumPoint(region);
-        final Location minimumPoint = new Location(plugin.getServer().getWorld(region.getWorld().getName()),
-                minimumVector.getX(), minimumVector.getY(), minimumVector.getZ());
+        final Location minimumPoint = new Location(player.getWorld(), minimumVector.getX(), minimumVector.getY(), minimumVector.getZ());
 
         final double maxTicksX = width * settings.getParticlesPerBlock() - 1;
         final double maxTicksZ = length * settings.getParticlesPerBlock() - 1;

@@ -1,15 +1,36 @@
+/*
+ * WorldEditCUI - https://git.io/wecui
+ * Copyright (C) 2018 KennyTV (https://github.com/KennyTV)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package eu.kennytv.worldeditcui.compat.we7;
 
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
+import com.sk89q.worldedit.math.BlockVector2;
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.math.Vector2;
 import com.sk89q.worldedit.math.Vector3;
 import com.sk89q.worldedit.regions.*;
 import eu.kennytv.worldeditcui.compat.IRegionHelper;
+import eu.kennytv.worldeditcui.compat.Simple2DVector;
 import eu.kennytv.worldeditcui.compat.SimpleVector;
-import eu.kennytv.worldeditcui.compat.VectorAction;
 import org.bukkit.Material;
+
+import java.util.List;
 
 public final class RegionHelper implements IRegionHelper {
 
@@ -71,7 +92,13 @@ public final class RegionHelper implements IRegionHelper {
     }
 
     @Override
-    public void iterate(final Polygonal2DRegion region, final VectorAction action) {
-        region.polygonize(-1).forEach(point -> action.act(point.getX(), 75, point.getZ()));
+    public Simple2DVector[] getPoints(final Polygonal2DRegion region) {
+        final List<BlockVector2> originalVectors = region.polygonize(-1);
+        final Simple2DVector[] vectors = new Simple2DVector[originalVectors.size()];
+        int i = 0;
+        for (final BlockVector2 vector : originalVectors) {
+            vectors[i++] = new Simple2DVector(vector.getX(), vector.getZ());
+        }
+        return vectors;
     }
 }

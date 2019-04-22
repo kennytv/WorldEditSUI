@@ -27,22 +27,32 @@ advanced-grid:
   particles-per-block: 2
 
 particle-expiry:
-  # If set to true and a selection isn't changed for the given amount of seconds, particles will stop being sent for it
+  # If enabled and a selection isn't changed for the given amount of seconds, particles will stop being sent for it
   enabled: false
   expires-after-seconds: 180
-  # If set to true, players are notified if their particles disappear after the expiry.
+  # If enabled, players are notified if their particles disappear after the expiry.
   expire-message: true
+
+# If enabled, the particles will be sent to all players, rather than just to the player having the WorldEdit selection.
+# Might be useful when building as a group.
+send-particles-to-all: false
 
 # If set to 'none', every player will have their selection displayed.
 # Else, only players with the set permission will have particles for their selection.
 permission: "none"
 
-# If set to true, the particles will be sent to all players,
-# rather than just to the player having the WorldEdit selection.
-# Might be useful when building as a group.
-send-particles-to-all: false
-# Particle to be shown for other player's selections.
-other-player-particle: FLAME
+# If set to false, players will have to use '/wecui toggle' first to be able to see the particles.
+show-selection-by-default: true
+# If set to false, players will have to use '/wecui toggleclipboard' first to be able to see the particles.
+show-clipboard-by-default: false
+
+# Saves toggles to a file, so that they stay changed after player quits and server restarts.
+# This also includes the clipboard toggle.
+persistent-toggles: false
+
+# Changes the distance from which particles can be seen, can be set from 1 to 500 (if you for some reason want to see them 500 blocks away).
+# This does NOT affect server performance in any way.
+particle-viewdistance: 99
 
 # Recommended to have this enabled, as you'd else miss out on new features and overall improvements.
 update-checks: true

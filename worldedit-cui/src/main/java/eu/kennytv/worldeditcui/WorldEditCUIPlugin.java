@@ -65,12 +65,11 @@ public final class WorldEditCUIPlugin extends JavaPlugin {
         final PluginManager pm = getServer().getPluginManager();
         worldEditPlugin = ((WorldEditPlugin) pm.getPlugin("WorldEdit"));
 
-        final String majorVersion = worldEditPlugin.getDescription().getVersion().split("\\.", 2)[0];
-        if (majorVersion.matches("[0-9]+")) {
-            regionHelper = Integer.parseInt(majorVersion) >= 7 ? new eu.kennytv.worldeditcui.compat.we7.RegionHelper() : new eu.kennytv.worldeditcui.compat.we6.RegionHelper();
-        } else {
-            // WE version undefined with FAWE/AWE on 1.13+
+        try {
+            Class.forName("com.sk89q.worldedit.math.Vector2");
             regionHelper = new eu.kennytv.worldeditcui.compat.we7.RegionHelper();
+        } catch (final ClassNotFoundException e) {
+            regionHelper = new eu.kennytv.worldeditcui.compat.we6.RegionHelper();
         }
 
         getServer().getOnlinePlayers().forEach(p -> userManager.createUser(p));

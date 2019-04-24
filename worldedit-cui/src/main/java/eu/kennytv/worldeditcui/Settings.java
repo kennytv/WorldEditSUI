@@ -99,7 +99,7 @@ public final class Settings {
             permission = null;
 
         updateChecks = config.getBoolean("update-checks", true);
-        sendParticlesToAll = config.getBoolean("send-to-all.enabled");
+        sendParticlesToAll = config.getBoolean("send-particles-to-all");
         persistentToggles = config.getBoolean("persistent-toggles");
         showByDefault = config.getBoolean("show-selection-by-default", true);
         showClipboardByDefault = config.getBoolean("show-clipboard-by-default");

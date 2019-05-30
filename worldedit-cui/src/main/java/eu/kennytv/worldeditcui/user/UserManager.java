@@ -24,11 +24,10 @@ import org.bukkit.entity.Player;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 public final class UserManager {
     private final Map<UUID, User> users = new HashMap<>();
-    private final Map<UUID, Long> expireTimestamps = new ConcurrentHashMap<>();
+    private final Map<UUID, Long> expireTimestamps = new HashMap<>();
     private final Settings settings;
 
     public UserManager(final Settings settings) {
@@ -42,7 +41,7 @@ public final class UserManager {
     public void createUser(final Player player) {
         final boolean selection;
         final boolean clipboard;
-        if (settings.persistentToggles()) {
+        if (settings.hasPersistentToggles()) {
             final String uuid = player.getUniqueId().toString();
             selection = settings.getUserData().contains("selection." + uuid) ? settings.getUserData().getBoolean("selection." + uuid) : settings.showByDefault();
             clipboard = settings.getUserData().contains("clipboard." + uuid) ? settings.getUserData().getBoolean("clipboard." + uuid) : settings.showClipboardByDefault();

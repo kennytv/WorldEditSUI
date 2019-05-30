@@ -19,15 +19,18 @@
 package eu.kennytv.worldeditcui;
 
 import eu.kennytv.util.particlelib.ViaParticle;
+import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.YamlConfiguration;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 
 public final class Settings {
     private final WorldEditCUIPlugin plugin;
 
     private YamlConfiguration userData;
+    private YamlConfiguration language;
     private boolean changedUserData;
 
     private String permission;
@@ -55,6 +58,7 @@ public final class Settings {
         plugin.getConfig().options().copyDefaults(true);
         plugin.saveDefaultConfig();
         loadSettings();
+        loadLanguageFile();
     }
 
     public void loadSettings() {
@@ -143,6 +147,22 @@ public final class Settings {
         }
     }
 
+    public void loadLanguageFile() {
+        final File file = new File(plugin.getDataFolder(), "language.yml");
+        if (!file.exists()) {
+            try (final InputStream in = plugin.getResource("language.yml")) {
+                Files.copy(in, file.toPath());
+            } catch (final IOException e) {
+                throw new RuntimeException("Unable to create language.yml file for WorldEditCUI!", e);
+            }
+        }
+        try {
+            language = YamlConfiguration.loadConfiguration(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
+        } catch (final FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
     private ViaParticle loadParticle(final YamlConfiguration config, final String s, final ViaParticle defaultParticle) {
         final String particleName = config.getString(s, defaultParticle.name());
         final ViaParticle particle = ViaParticle.getByName(particleName);
@@ -168,6 +188,17 @@ public final class Settings {
     public void setUserData(final String path, final boolean value) {
         userData.set(path, value);
         changedUserData = true;
+    }
+
+    public String getMessage(final String path) {
+        String s = language.getString(path);
+        if (s == null) {
+            plugin.getLogger().warning("The language file is missing the following string: " + path);
+            return "empty";
+        }
+        if (s.contains("%prefix%"))
+            s = s.replace("%prefix%", language.getString("prefix", ""));
+        return ChatColor.translateAlternateColorCodes('&', s);
     }
 
     public String getPermission() {
@@ -222,7 +253,7 @@ public final class Settings {
         return sendParticlesToAll;
     }
 
-    public boolean persistentToggles() {
+    public boolean hasPersistentToggles() {
         return persistentToggles;
     }
 

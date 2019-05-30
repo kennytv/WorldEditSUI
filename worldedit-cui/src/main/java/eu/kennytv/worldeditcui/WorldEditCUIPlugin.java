@@ -52,6 +52,8 @@ public final class WorldEditCUIPlugin extends JavaPlugin {
     private DrawManager drawManager;
     private WorldEditPlugin worldEditPlugin;
     private String version;
+    private int expiryTask = -1;
+    private int persistentTogglesTask = -1;
 
     @Override
     public void onEnable() {
@@ -72,32 +74,50 @@ public final class WorldEditCUIPlugin extends JavaPlugin {
             regionHelper = new eu.kennytv.worldeditcui.compat.we6.RegionHelper();
         }
 
+        // Imagine someone using the server reload command 👀
         getServer().getOnlinePlayers().forEach(p -> userManager.createUser(p));
 
         pm.registerEvents(new PlayerJoinListener(this), this);
         pm.registerEvents(new PlayerQuitListener(userManager), this);
         pm.registerEvents(new WESelectionListener(this), this);
         getCommand("worldeditcui").setExecutor(new WECUICommand(this));
+
+        // Start tasks
         getServer().getScheduler().runTaskTimerAsynchronously(this, this::updateSelections, settings.getParticleSendIntervall(), settings.getParticleSendIntervall());
-        getServer().getScheduler().runTaskTimerAsynchronously(this, () -> {
-            if (!settings.isExpiryEnabled()) return;
-            userManager.getExpireTimestamps().entrySet().removeIf(entry -> {
-                final boolean remove = entry.getValue() < System.currentTimeMillis();
-                if (remove && settings.hasExpireMessage())
-                    getServer().getPlayer(entry.getKey()).sendMessage(PREFIX + "§7The selection particles are no longer displayed, because you didn't change it for a while.");
-                return remove;
-            });
-        }, 20, 20);
-        if (settings.persistentToggles()) {
-            // Check once every 15 minutes
-            getServer().getScheduler().runTaskTimerAsynchronously(this, () -> settings.saveData(), 18000, 18000);
-        }
+        checkTasks();
+
         new MetricsLite(this);
     }
 
     @Override
     public void onDisable() {
         settings.saveData();
+    }
+
+    public void checkTasks() {
+        // Start tasks if not already running, or cancel them if one is running but now disabled in the config
+        if (expiryTask == -1 && settings.isExpiryEnabled()) {
+            expiryTask = getServer().getScheduler().runTaskTimer(this, () -> {
+                userManager.getExpireTimestamps().entrySet().removeIf(entry -> {
+                    final boolean remove = entry.getValue() < System.currentTimeMillis();
+                    if (remove && settings.hasExpireMessage()) {
+                        getServer().getPlayer(entry.getKey()).sendMessage(settings.getMessage("idled"));
+                    }
+                    return remove;
+                });
+            }, 20, 20).getTaskId();
+        } else if (expiryTask != -1 && !settings.isExpiryEnabled()) {
+            getServer().getScheduler().cancelTask(expiryTask);
+            expiryTask = -1;
+        }
+
+        if (persistentTogglesTask == -1 && settings.hasPersistentToggles()) {
+            // Check every 15 minutes
+            persistentTogglesTask = getServer().getScheduler().runTaskTimerAsynchronously(this, () -> settings.saveData(), 18000, 18000).getTaskId();
+        } else if (persistentTogglesTask != -1 && !settings.hasPersistentToggles()) {
+            getServer().getScheduler().cancelTask(persistentTogglesTask);
+            persistentTogglesTask = -1;
+        }
     }
 
     private void updateSelections() {

@@ -34,9 +34,8 @@ public final class DrawManager {
         drawers.put("ellipsoid", ellipsoidDrawer);
         drawers.put("Cylinder", new CylinderDrawer(plugin));
         drawers.put("2Dx1D polygon", new PolygonalDrawer(plugin));
-        /*
-        "Convex Polyhedron"
-        */
+        //TODO "Convex Polyhedron"?
+        //TODO FAWE regions?
     }
 
     public Drawer getDrawer(final String selectorType) {

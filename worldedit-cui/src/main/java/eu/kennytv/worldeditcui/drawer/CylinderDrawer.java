@@ -44,7 +44,7 @@ public final class CylinderDrawer extends DrawerBase {
         final int top = ((FlatRegion) region).getMaximumY() + 1;
 
         final SimpleVector center = plugin.getRegionHelper().getCenter(region, 0.5, 0, 0.5);
-        final Location location = new Location(player.getWorld(), center.getX(), bottom, center.getZ());
+        final Location location = new Location(plugin.getServer().getWorld(region.getWorld().getName()), center.getX(), bottom, center.getZ());
         final double wideGrid = Math.PI / (settings.getParticlesPerBlock() * max * 2);
         final int heightSpace = (int) (settings.getParticleSpace() * height);
         drawCurves(player, width, length, heightSpace == 0 ? height : height / heightSpace, location, wideGrid, heightSpace == 0 ? 1 : heightSpace);

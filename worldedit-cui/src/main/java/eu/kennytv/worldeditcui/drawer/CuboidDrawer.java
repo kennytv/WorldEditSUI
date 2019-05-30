@@ -43,7 +43,7 @@ public final class CuboidDrawer extends DrawerBase {
         final double length = region.getLength();
         final double height = region.getHeight();
         final SimpleVector minimumVector = plugin.getRegionHelper().getMinimumPoint(region);
-        final Location minimumPoint = new Location(player.getWorld(), minimumVector.getX(), minimumVector.getY(), minimumVector.getZ());
+        final Location minimumPoint = new Location(plugin.getServer().getWorld(region.getWorld().getName()), minimumVector.getX(), minimumVector.getY(), minimumVector.getZ());
 
         final double maxTicksX = width * settings.getParticlesPerBlock() - 1;
         final double maxTicksZ = length * settings.getParticlesPerBlock() - 1;

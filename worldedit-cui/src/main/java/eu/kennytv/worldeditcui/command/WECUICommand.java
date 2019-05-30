@@ -39,65 +39,66 @@ public final class WECUICommand implements CommandExecutor, TabCompleter {
 
     @Override
     public boolean onCommand(final CommandSender sender, final Command cmd, final String s, final String[] args) {
-        if (!(sender instanceof Player)) return true;
-
-        final Player player = (Player) sender;
-        if (checkPermission(player, "command")) return true;
+        if (checkPermission(sender, "command")) return true;
         if (args.length == 1) {
             if (args[0].equalsIgnoreCase("toggle")) {
-                if (checkPermission(player, "command.toggle")) return true;
-                final User user = plugin.getUserManager().getUser(player);
-                if (!user.isSelectionShown()) {
-                    player.sendMessage(plugin.getPrefix() + "§aParticles of your selection are now shown again!");
-                } else {
-                    player.sendMessage(plugin.getPrefix() + "§cParticles of your selection are now hidden!");
-                }
+                if (!(sender instanceof Player)) return true;
+                if (checkPermission(sender, "command.toggle")) return true;
 
+                final Player player = (Player) sender;
+                final User user = plugin.getUserManager().getUser(player);
+                player.sendMessage(getMessage(user.isSelectionShown() ? "particlesHidden" : "particlesShown"));
                 user.setSelectionShown(!user.isSelectionShown());
-                if (plugin.getSettings().persistentToggles()) {
+                if (plugin.getSettings().hasPersistentToggles()) {
                     plugin.getSettings().setUserData("selection." + player.getUniqueId(), user.isSelectionShown());
                 }
             } else if (args[0].equalsIgnoreCase("toggleclipboard")) {
-                if (checkPermission(player, "command.toggleclipboard")) return true;
+                if (!(sender instanceof Player)) return true;
+                if (checkPermission(sender, "command.toggleclipboard")) return true;
+
+                final Player player = (Player) sender;
                 final User user = plugin.getUserManager().getUser(player);
                 if (!user.isClipboardShown()) {
-                    player.sendMessage(plugin.getPrefix() + "§aParticles of your clipboard are now shown at relative to your location!");
+                    player.sendMessage(getMessage("clipboardShown"));
                 } else {
-                    player.sendMessage(plugin.getPrefix() + "§cParticles of your clipboard are now hidden again!");
+                    player.sendMessage(getMessage("clipboardHidden"));
                 }
 
                 user.setClipboardShown(!user.isClipboardShown());
-                if (plugin.getSettings().persistentToggles()) {
+                if (plugin.getSettings().hasPersistentToggles()) {
                     plugin.getSettings().setUserData("clipboard." + player.getUniqueId(), user.isClipboardShown());
                 }
             } else if (args[0].equalsIgnoreCase("reload")) {
-                if (checkPermission(player, "command.reload")) return true;
+                if (checkPermission(sender, "command.reload")) return true;
+
                 plugin.getSettings().loadSettings();
-                player.sendMessage(plugin.getPrefix() + "§aReloaded config file!");
+                plugin.getSettings().loadLanguageFile();
+                plugin.checkTasks();
+                sender.sendMessage(getMessage("reload"));
             } else
-                sendHelp(player);
+                sendHelp(sender);
         } else
-            sendHelp(player);
+            sendHelp(sender);
         return true;
     }
 
-    private void sendHelp(final Player player) {
-        player.sendMessage("");
-        player.sendMessage("§8===========[ §eWorldEditCUI §8| §eVersion: §e" + plugin.getVersion() + " §8]===========");
-        if (player.hasPermission("wecui.command.reload"))
-            player.sendMessage("§6/wecui reload §7(Reloads the config file)");
-        if (player.hasPermission("wecui.command.toggle"))
-            player.sendMessage("§6/wecui toggle §7(Toggles the visibility of your selection-particles)");
-        if (player.hasPermission("wecui.command.toggleclipboard"))
-            player.sendMessage("§6/wecui toggleclipboard §7(Toggles the visibility of your clipboard-particles)");
-        player.sendMessage("§8× §eVersion " + plugin.getVersion() + " §7by §bKennyTV");
-        player.sendMessage("§8===========[ §eWorldEditCUI §8| §eVersion: §e" + plugin.getVersion() + " §8]===========");
-        player.sendMessage("");
+    private void sendHelp(final CommandSender sender) {
+        sender.sendMessage("");
+        sender.sendMessage("§8===========[ §eWorldEditCUI §8]===========");
+        if (sender.hasPermission("wecui.command.reload"))
+            sender.sendMessage(getMessage("helpReload"));
+        if (sender.hasPermission("wecui.command.toggle"))
+            sender.sendMessage(getMessage("helpToggle"));
+        if (sender.hasPermission("wecui.command.toggleclipboard"))
+            sender.sendMessage(getMessage("helpToggleClipboard"));
+        sender.sendMessage("§8× §eVersion " + plugin.getVersion() + " §7by §bKennyTV");
+        sender.sendMessage("§8===========[ §eWorldEditCUI §8]===========");
+        sender.sendMessage("");
     }
 
-    private boolean checkPermission(final Player player, final String permission) {
-        if (!player.hasPermission("wecui." + permission)) {
-            player.sendMessage(plugin.getPrefix() + "§cYou don't have the permission to use this command.");
+    private boolean checkPermission(final CommandSender sender, final String permission) {
+        if (!sender.hasPermission("wecui." + permission)) {
+            sender.sendMessage(getMessage("noPermission"));
             return true;
         }
         return false;
@@ -119,5 +120,9 @@ public final class WECUICommand implements CommandExecutor, TabCompleter {
         if (!s.isEmpty() && !command.startsWith(s)) return;
         if (sender.hasPermission("wecui.command." + command))
             list.add(command);
+    }
+
+    private String getMessage(final String path) {
+        return plugin.getSettings().getMessage(path);
     }
 }

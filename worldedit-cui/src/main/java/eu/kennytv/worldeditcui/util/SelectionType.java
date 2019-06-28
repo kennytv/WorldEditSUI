@@ -16,22 +16,34 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package eu.kennytv.worldeditcui.listener;
+package eu.kennytv.worldeditcui.util;
 
-import eu.kennytv.worldeditcui.user.UserManager;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerQuitEvent;
+import java.util.HashMap;
+import java.util.Map;
 
-public final class PlayerQuitListener implements Listener {
-    private final UserManager userManager;
+public enum SelectionType {
 
-    public PlayerQuitListener(final UserManager userManager) {
-        this.userManager = userManager;
+    CUBOID("cuboid"),
+    SPHERE("sphere"),
+    ELLIPSOID("ellipsoid"),
+    CYLINDER("Cylinder"),
+    POLYGON("2Dx1D polygon"),
+    NONE(null);
+
+    private static final Map<String, SelectionType> TYPES = new HashMap<>();
+    private final String key;
+
+    SelectionType(final String key) {
+        this.key = key;
     }
 
-    @EventHandler
-    public void playerQuit(final PlayerQuitEvent event) {
-        userManager.deleteUser(event.getPlayer());
+    static {
+        for (final SelectionType type : SelectionType.values()) {
+            TYPES.put(type.key, type);
+        }
+    }
+
+    public static SelectionType fromKey(final String key) {
+        return TYPES.get(key);
     }
 }

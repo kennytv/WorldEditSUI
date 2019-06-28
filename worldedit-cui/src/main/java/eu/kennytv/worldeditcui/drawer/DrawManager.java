@@ -18,6 +18,7 @@
 
 package eu.kennytv.worldeditcui.drawer;
 
+import eu.kennytv.worldeditcui.util.SelectionType;
 import eu.kennytv.worldeditcui.WorldEditCUIPlugin;
 import eu.kennytv.worldeditcui.drawer.base.Drawer;
 
@@ -25,20 +26,20 @@ import java.util.HashMap;
 import java.util.Map;
 
 public final class DrawManager {
-    private final Map<String, Drawer> drawers = new HashMap<>();
+    private final Map<SelectionType, Drawer> drawers = new HashMap<>();
 
     public DrawManager(final WorldEditCUIPlugin plugin) {
-        drawers.put("cuboid", new CuboidDrawer(plugin));
+        drawers.put(SelectionType.CUBOID, new CuboidDrawer(plugin));
         final EllipsoidDrawer ellipsoidDrawer = new EllipsoidDrawer(plugin);
-        drawers.put("sphere", ellipsoidDrawer);
-        drawers.put("ellipsoid", ellipsoidDrawer);
-        drawers.put("Cylinder", new CylinderDrawer(plugin));
-        drawers.put("2Dx1D polygon", new PolygonalDrawer(plugin));
+        drawers.put(SelectionType.SPHERE, ellipsoidDrawer);
+        drawers.put(SelectionType.ELLIPSOID, ellipsoidDrawer);
+        drawers.put(SelectionType.CYLINDER, new CylinderDrawer(plugin));
+        drawers.put(SelectionType.POLYGON, new PolygonalDrawer(plugin));
         //TODO "Convex Polyhedron"?
         //TODO FAWE regions?
     }
 
-    public Drawer getDrawer(final String selectorType) {
-        return drawers.get(selectorType);
+    public Drawer getDrawer(final SelectionType selectionType) {
+        return drawers.get(selectionType);
     }
 }

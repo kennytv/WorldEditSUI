@@ -40,6 +40,8 @@ public interface IRegionHelper {
 
     SimpleVector getMinimumPoint(Region region);
 
+    SimpleVector getMaximumPoint(Region region);
+
     SimpleVector getOrigin(Clipboard clipboard);
 
     Region shift(Region region, double x, double y, double z);

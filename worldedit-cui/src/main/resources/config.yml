@@ -1,5 +1,11 @@
 # WorldEditCUI Plugin by KennyTV
 
+# If enabled, the positions for particles will only be calculated once per selection and then cached.
+# This essentially entirely removes the higher CPU usage of the calculations, but results in some caching if many/big selections are being made.
+#
+# Disable this if you run into concurreny errors.
+cache-calculated-positions: true
+
 # A list of all particles can be found here: https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Particle.html
 # Just note that newly introduced particles obviously won't work in older versions.
 # Shown for the selection you currently have.
@@ -15,7 +21,7 @@ particles-per-block: 3
 # This number determines how many ticks should be between every sending of particles.
 # Can be set from 5 to 200.
 # For reference: 20 Minecraft ticks are equivalent to 1 second -> 10 ticks are 0.5 seconds -> 1 tick is 0.05 seconds.
-particle-send-intervall: 12
+particle-send-interval: 12
 
 advanced-grid:
   # If enabled, the selection will not only be displayed by the outline,

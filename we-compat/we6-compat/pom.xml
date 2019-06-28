@@ -6,7 +6,7 @@
     <parent>
         <groupId>eu.kennytv.worldeditcui</groupId>
         <artifactId>we-compat</artifactId>
-        <version>1.4.2</version>
+        <version>1.5-SNAPSHOT</version>
     </parent>
 
     <artifactId>we6-compat</artifactId>

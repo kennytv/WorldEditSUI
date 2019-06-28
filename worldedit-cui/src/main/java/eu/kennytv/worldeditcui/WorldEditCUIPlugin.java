@@ -26,20 +26,29 @@ import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.regions.RegionSelector;
+import eu.kennytv.util.particlelib.ParticleEffectUtil;
 import eu.kennytv.worldeditcui.command.WECUICommand;
 import eu.kennytv.worldeditcui.compat.IRegionHelper;
 import eu.kennytv.worldeditcui.compat.SimpleVector;
 import eu.kennytv.worldeditcui.drawer.DrawManager;
-import eu.kennytv.worldeditcui.drawer.base.Drawer;
 import eu.kennytv.worldeditcui.listener.PlayerJoinListener;
 import eu.kennytv.worldeditcui.listener.PlayerQuitListener;
 import eu.kennytv.worldeditcui.listener.WESelectionListener;
 import eu.kennytv.worldeditcui.metrics.MetricsLite;
+import eu.kennytv.worldeditcui.user.SelectionCache;
 import eu.kennytv.worldeditcui.user.User;
 import eu.kennytv.worldeditcui.user.UserManager;
+import eu.kennytv.worldeditcui.util.SelectionType;
+import eu.kennytv.worldeditcui.util.Version;
 import org.bukkit.Location;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 /**
  * @author KennyTV
@@ -51,14 +60,15 @@ public final class WorldEditCUIPlugin extends JavaPlugin {
     private Settings settings;
     private DrawManager drawManager;
     private WorldEditPlugin worldEditPlugin;
-    private String version;
+    private Version version;
+    private Version newestVersion;
     private int expiryTask = -1;
     private int persistentTogglesTask = -1;
 
     @Override
     public void onEnable() {
-        version = getDescription().getVersion();
-        getLogger().info("Plugin by KennyTV");
+        version = new Version(getDescription().getVersion());
+        printEnableMessage();
 
         settings = new Settings(this);
         userManager = new UserManager(settings);
@@ -83,7 +93,7 @@ public final class WorldEditCUIPlugin extends JavaPlugin {
         getCommand("worldeditcui").setExecutor(new WECUICommand(this));
 
         // Start tasks
-        getServer().getScheduler().runTaskTimerAsynchronously(this, this::updateSelections, settings.getParticleSendIntervall(), settings.getParticleSendIntervall());
+        getServer().getScheduler().runTaskTimerAsynchronously(this, this::updateSelections, settings.getParticleSendInterval(), settings.getParticleSendInterval());
         checkTasks();
 
         new MetricsLite(this);
@@ -92,6 +102,37 @@ public final class WorldEditCUIPlugin extends JavaPlugin {
     @Override
     public void onDisable() {
         settings.saveData();
+    }
+
+    private void printEnableMessage() {
+        getLogger().info("Plugin by KennyTV");
+        getServer().getScheduler().runTaskAsynchronously(this, () -> {
+            updateAvailable();
+            final int compare = version.compareTo(newestVersion);
+            if (compare == -1) {
+                getLogger().info("§cNewest version available: §aVersion " + newestVersion + "§c, you're on §a" + version);
+            } else if (compare == 1) {
+                if (version.getTag().equalsIgnoreCase("snapshot")) {
+                    getLogger().info("§cYou're running a development version, please report bugs on the Discord server (https://kennytv.eu/discord).");
+                } else {
+                    getLogger().info("§cYou're running a version, that doesn't exist! §cN§ai§dc§ee§5!");
+                }
+            }
+        });
+    }
+
+    public boolean updateAvailable() {
+        try {
+            final HttpURLConnection c = (HttpURLConnection) new URL("https://api.spigotmc.org/legacy/update.php?resource=60726").openConnection();
+            final String newVersionString = new BufferedReader(new InputStreamReader(c.getInputStream())).readLine().replaceAll("[a-zA-Z -]", "");
+            final Version newVersion = new Version(newVersionString);
+            if (newVersion.equals(version)) return false;
+
+            newestVersion = newVersion;
+            return version.compareTo(newVersion) == -1;
+        } catch (final Exception ignored) {
+            return false;
+        }
     }
 
     public void checkTasks() {
@@ -121,15 +162,15 @@ public final class WorldEditCUIPlugin extends JavaPlugin {
     }
 
     private void updateSelections() {
-        getServer().getOnlinePlayers().forEach(player -> {
-            if (!player.isOnline()) return;
+        for (final Player player : getServer().getOnlinePlayers()) {
+            if (!player.isOnline()) continue;
 
             final User user = userManager.getUser(player);
-            if (user == null) return;
-            if (!user.isSelectionShown() && !user.isClipboardShown()) return;
+            if (user == null) continue;
+            if (!user.isSelectionShown() && !user.isClipboardShown()) continue;
             if (settings.isExpiryEnabled() && !userManager.getExpireTimestamps().containsKey(player.getUniqueId()))
-                return;
-            if (settings.getPermission() != null && !player.hasPermission(settings.getPermission())) return;
+                continue;
+            if (settings.getPermission() != null && !player.hasPermission(settings.getPermission())) continue;
 
             final LocalSession session = worldEditPlugin.getSession(player);
             final RegionSelector selector = session.getRegionSelector(new BukkitWorld(player.getWorld()));
@@ -138,11 +179,12 @@ public final class WorldEditCUIPlugin extends JavaPlugin {
             if (user.isClipboardShown()) {
                 try {
                     final Clipboard clipboard = session.getClipboard().getClipboard();
-                    final SimpleVector origin = regionHelper.getOrigin(clipboard);
-                    final Location location = player.getLocation();
                     final Region region = clipboard.getRegion();
-                    final Region shiftedRegion = regionHelper.shift(region, location.getBlockX() - origin.getX(), location.getBlockY() - origin.getY(), location.getBlockZ() - origin.getZ());
-                    drawManager.getDrawer("cuboid").draw(settings.sendParticlesToAll() ? null : player, shiftedRegion, true);
+                    final Location location = player.getLocation();
+                    final SimpleVector origin = regionHelper.getOrigin(clipboard);
+                    final Region shiftedRegion = regionHelper.shift(region,
+                            location.getBlockX() - origin.getX(), location.getBlockY() - origin.getY(), location.getBlockZ() - origin.getZ());
+                    drawManager.getDrawer(SelectionType.CUBOID).draw(player, shiftedRegion, true);
                 } catch (final EmptyClipboardException ignored) {
                     // Ignore if there's no clipboard
                 }
@@ -154,13 +196,58 @@ public final class WorldEditCUIPlugin extends JavaPlugin {
                 try {
                     region = selector.getRegion();
                 } catch (final IncompleteRegionException ignored) {
+                    // Clear cache if present
+                    if (settings.cacheLocations()) {
+                        final SelectionCache cache = user.getSelectionCache();
+                        if (cache != null) {
+                            cache.getVectors().clear();
+                            user.setSelectionCache(null);
+                        }
+                    }
+                    continue;
+                }
+
+                final SelectionType selectionType = SelectionType.fromKey(selector.getTypeName());
+                if (selectionType != null)
+                    drawSelection(player, user, region, selectionType);
+            }
+        }
+    }
+
+    private void drawSelection(final Player player, final User user, final Region region, final SelectionType selectionType) {
+        if (settings.cacheLocations()) {
+            final SimpleVector minimumPoint = regionHelper.getMinimumPoint(region);
+            final SimpleVector maximumPoint = regionHelper.getMaximumPoint(region);
+            SelectionCache cache = user.getSelectionCache();
+            if (cache != null) {
+                if (selectionType == cache.getSelectionType()
+                        && cache.getMinimum().equals(minimumPoint) && cache.getMaximum().equals(maximumPoint)) {
+                    final Location location = new Location(player.getWorld(), 0, 0, 0);
+                    for (final SimpleVector vector : cache.getVectors()) {
+                        location.setX(vector.getX());
+                        location.setY(vector.getY());
+                        location.setZ(vector.getZ());
+                        if (settings.sendParticlesToAll()) {
+                            ParticleEffectUtil.playEffect(settings.getParticle(), location, 0, 1, settings.getParticleViewDistance());
+                        } else {
+                            ParticleEffectUtil.playEffect(settings.getParticle(), location, 0, 1, settings.getParticleViewDistance(), player);
+                        }
+                    }
                     return;
                 }
-                final Drawer drawer = drawManager.getDrawer(selector.getTypeName());
-                if (drawer != null)
-                    drawer.draw(settings.sendParticlesToAll() ? null : player, region);
+            } else {
+                cache = new SelectionCache();
+                user.setSelectionCache(cache);
             }
-        });
+
+            // If there's a new region, reset the cache and recalculate vectors
+            cache.setMinimum(minimumPoint);
+            cache.setMaximum(maximumPoint);
+            cache.setSelectionType(selectionType);
+            cache.getVectors().clear();
+        }
+
+        drawManager.getDrawer(selectionType).draw(player, region);
     }
 
     public WorldEditPlugin getWorldEditPlugin() {
@@ -179,8 +266,12 @@ public final class WorldEditCUIPlugin extends JavaPlugin {
         return PREFIX;
     }
 
-    public String getVersion() {
+    public Version getVersion() {
         return version;
+    }
+
+    public Version getNewestVersion() {
+        return newestVersion;
     }
 
     public IRegionHelper getRegionHelper() {

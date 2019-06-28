@@ -53,7 +53,11 @@ public final class UserManager {
     }
 
     public void deleteUser(final Player player) {
-        users.remove(player.getUniqueId());
+        expireTimestamps.remove(player.getUniqueId());
+        final User remove = users.remove(player.getUniqueId());
+        final SelectionCache cache = remove.getSelectionCache();
+        if (cache != null)
+            cache.getVectors().clear();
     }
 
     public Map<UUID, User> getUsers() {

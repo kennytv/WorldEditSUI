@@ -18,6 +18,7 @@
 
 package eu.kennytv.worldeditcui.command;
 
+import eu.kennytv.worldeditcui.Settings;
 import eu.kennytv.worldeditcui.WorldEditCUIPlugin;
 import eu.kennytv.worldeditcui.user.User;
 import org.bukkit.command.Command;
@@ -32,9 +33,11 @@ import java.util.List;
 
 public final class WECUICommand implements CommandExecutor, TabCompleter {
     private final WorldEditCUIPlugin plugin;
+    private final Settings settings;
 
     public WECUICommand(final WorldEditCUIPlugin plugin) {
         this.plugin = plugin;
+        settings = plugin.getSettings();
     }
 
     @Override
@@ -47,10 +50,17 @@ public final class WECUICommand implements CommandExecutor, TabCompleter {
 
                 final Player player = (Player) sender;
                 final User user = plugin.getUserManager().getUser(player);
-                player.sendMessage(getMessage(user.isSelectionShown() ? "particlesHidden" : "particlesShown"));
-                user.setSelectionShown(!user.isSelectionShown());
-                if (plugin.getSettings().hasPersistentToggles()) {
-                    plugin.getSettings().setUserData("selection." + player.getUniqueId(), user.isSelectionShown());
+                if (user.isSelectionShown()) {
+                    player.sendMessage(getMessage("particlesHidden"));
+                    user.setSelectionShown(false);
+                    user.setSelectionCache(null);
+                } else {
+                    player.sendMessage(getMessage("particlesShown"));
+                    user.setSelectionShown(true);
+                }
+
+                if (settings.hasPersistentToggles()) {
+                    settings.setUserData("selection." + player.getUniqueId(), user.isSelectionShown());
                 }
             } else if (args[0].equalsIgnoreCase("toggleclipboard")) {
                 if (!(sender instanceof Player)) return true;
@@ -58,21 +68,20 @@ public final class WECUICommand implements CommandExecutor, TabCompleter {
 
                 final Player player = (Player) sender;
                 final User user = plugin.getUserManager().getUser(player);
-                if (!user.isClipboardShown()) {
-                    player.sendMessage(getMessage("clipboardShown"));
-                } else {
-                    player.sendMessage(getMessage("clipboardHidden"));
-                }
-
+                player.sendMessage(user.isClipboardShown() ? getMessage("clipboardHidden") : getMessage("clipboardShown"));
                 user.setClipboardShown(!user.isClipboardShown());
-                if (plugin.getSettings().hasPersistentToggles()) {
-                    plugin.getSettings().setUserData("clipboard." + player.getUniqueId(), user.isClipboardShown());
+                if (settings.hasPersistentToggles()) {
+                    settings.setUserData("clipboard." + player.getUniqueId(), user.isClipboardShown());
                 }
             } else if (args[0].equalsIgnoreCase("reload")) {
                 if (checkPermission(sender, "command.reload")) return true;
 
-                plugin.getSettings().loadSettings();
-                plugin.getSettings().loadLanguageFile();
+                final boolean cache = settings.cacheLocations();
+                settings.loadSettings();
+                settings.loadLanguageFile();
+                // Empty cache if now disabled
+                if (cache && !settings.cacheLocations())
+                    plugin.getUserManager().getUsers().values().forEach(user -> user.setSelectionCache(null));
                 plugin.checkTasks();
                 sender.sendMessage(getMessage("reload"));
             } else
@@ -123,6 +132,6 @@ public final class WECUICommand implements CommandExecutor, TabCompleter {
     }
 
     private String getMessage(final String path) {
-        return plugin.getSettings().getMessage(path);
+        return settings.getMessage(path);
     }
 }

@@ -19,6 +19,7 @@
 package eu.kennytv.worldeditcui.user;
 
 public final class User {
+    private SelectionCache selectionCache;
     private boolean selectionShown;
     private boolean clipboardShown;
 
@@ -41,5 +42,13 @@ public final class User {
 
     public void setClipboardShown(final boolean clipboardShown) {
         this.clipboardShown = clipboardShown;
+    }
+
+    public SelectionCache getSelectionCache() {
+        return selectionCache;
+    }
+
+    public void setSelectionCache(final SelectionCache selectionCache) {
+        this.selectionCache = selectionCache;
     }
 }

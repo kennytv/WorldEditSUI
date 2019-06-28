@@ -28,10 +28,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -39,7 +35,6 @@ import java.util.UUID;
 public final class PlayerJoinListener implements Listener {
     private final Set<UUID> notified = new HashSet<>();
     private final WorldEditCUIPlugin plugin;
-    private String newestVersion;
 
     public PlayerJoinListener(final WorldEditCUIPlugin plugin) {
         this.plugin = plugin;
@@ -54,9 +49,10 @@ public final class PlayerJoinListener implements Listener {
         if (notified.contains(player.getUniqueId())) return;
 
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            if (!updateAvailable()) return;
+            if (!plugin.updateAvailable()) return;
+            if (!player.isOnline()) return;
 
-            player.sendMessage(plugin.getPrefix() + "§cThere is a newer version available: §aVersion " + newestVersion + "§c, you're on §a" + plugin.getDescription().getVersion());
+            player.sendMessage(plugin.getPrefix() + "§cThere is a newer version available: §aVersion " + plugin.getNewestVersion() + "§c, you're on §a" + plugin.getDescription().getVersion());
             notified.add(player.getUniqueId());
 
             try {
@@ -74,20 +70,5 @@ public final class PlayerJoinListener implements Listener {
             }
         });
 
-    }
-
-    private boolean updateAvailable() {
-        try {
-            final HttpURLConnection c = (HttpURLConnection) new URL("https://api.spigotmc.org/legacy/update.php?resource=60726").openConnection();
-            final String newVersion = new BufferedReader(new InputStreamReader(c.getInputStream())).readLine().replaceAll("[a-zA-Z -]", "");
-
-            final boolean available = !newVersion.equals(plugin.getDescription().getVersion());
-            if (available)
-                newestVersion = newVersion;
-
-            return available;
-        } catch (final Exception ignored) {
-            return false;
-        }
     }
 }

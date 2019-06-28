@@ -39,9 +39,10 @@ public final class Settings {
     private double particleGridSpace;
     private int particlesPerBlock;
     private int particlesPerGridBlock;
-    private int particleSendIntervall;
+    private int particleSendInterval;
     private int particleViewDistance;
     private long expiresAfterMillis;
+    private boolean cacheLocations;
     private boolean expiryEnabled;
     private boolean expireMessage;
     private boolean advancedGrid;
@@ -91,17 +92,18 @@ public final class Settings {
             }
         }
 
-        particleSendIntervall = config.getInt("particle-send-intervall", 12);
-        if (particleSendIntervall < 5 || particleSendIntervall > 200) {
-            plugin.getLogger().warning("The particle-send-intervall has to be set between 5 and 200!");
-            plugin.getLogger().warning("Switched to default particle-send-intervall: 12");
-            this.particleSendIntervall = 12;
+        particleSendInterval = config.getInt("particle-send-interval", 12);
+        if (particleSendInterval < 5 || particleSendInterval > 200) {
+            plugin.getLogger().warning("The particle-send-interval has to be set between 5 and 200!");
+            plugin.getLogger().warning("Switched to default particle-send-interval: 12");
+            this.particleSendInterval = 12;
         }
 
         permission = config.getString("permission", "");
         if (permission.isEmpty() || permission.equalsIgnoreCase("none"))
             permission = null;
 
+        cacheLocations = config.getBoolean("cache-calculated-positions");
         updateChecks = config.getBoolean("update-checks", true);
         sendParticlesToAll = config.getBoolean("send-particles-to-all");
         persistentToggles = config.getBoolean("persistent-toggles");
@@ -221,8 +223,8 @@ public final class Settings {
         return particlesPerGridBlock;
     }
 
-    public int getParticleSendIntervall() {
-        return particleSendIntervall;
+    public int getParticleSendInterval() {
+        return particleSendInterval;
     }
 
     public int getParticleViewDistance() {
@@ -263,6 +265,10 @@ public final class Settings {
 
     public boolean showClipboardByDefault() {
         return showClipboardByDefault;
+    }
+
+    public boolean cacheLocations() {
+        return cacheLocations;
     }
 
     public ViaParticle getParticle() {

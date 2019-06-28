@@ -19,8 +19,11 @@
 package eu.kennytv.worldeditcui.drawer.base;
 
 import eu.kennytv.util.particlelib.ParticleEffectUtil;
+import eu.kennytv.util.particlelib.ViaParticle;
 import eu.kennytv.worldeditcui.Settings;
 import eu.kennytv.worldeditcui.WorldEditCUIPlugin;
+import eu.kennytv.worldeditcui.compat.SimpleVector;
+import eu.kennytv.worldeditcui.user.User;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
@@ -35,16 +38,21 @@ public abstract class DrawerBase implements Drawer {
     }
 
     protected void playEffect(final Location location, final Player player) {
-        if (player != null)
-            ParticleEffectUtil.playEffect(settings.getParticle(), location, 0, 1, settings.getParticleViewDistance(), player);
-        else
-            ParticleEffectUtil.playEffect(settings.getParticle(), location, 0, 1, settings.getParticleViewDistance());
+        playEffect(location, player, false);
     }
 
     protected void playEffect(final Location location, final Player player, final boolean copySelection) {
-        if (player != null)
-            ParticleEffectUtil.playEffect(copySelection ? settings.getCopyParticle() : settings.getParticle(), location, 0, 1, settings.getParticleViewDistance(), player);
-        else
-            ParticleEffectUtil.playEffect(copySelection ? settings.getCopyParticle() : settings.getParticle(), location, 0, 1, settings.getParticleViewDistance());
+        final ViaParticle particle = copySelection ? settings.getCopyParticle() : settings.getParticle();
+        if (settings.cacheLocations() && !copySelection) {
+            final User user = plugin.getUserManager().getUser(player);
+            if (user == null) return;
+            user.getSelectionCache().getVectors().add(new SimpleVector(location.getX(), location.getY(), location.getZ()));
+        }
+
+        if (settings.sendParticlesToAll()) {
+            ParticleEffectUtil.playEffect(particle, location, 0, 1, settings.getParticleViewDistance());
+        } else {
+            ParticleEffectUtil.playEffect(particle, location, 0, 1, settings.getParticleViewDistance(), player);
+        }
     }
 }

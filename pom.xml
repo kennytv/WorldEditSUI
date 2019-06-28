@@ -7,7 +7,7 @@
     <groupId>eu.kennytv.worldeditcui</groupId>
     <artifactId>worldedit-cui-parent</artifactId>
     <packaging>pom</packaging>
-    <version>1.4.2</version>
+    <version>1.5-SNAPSHOT</version>
 
     <modules>
         <module>worldedit-cui</module>
@@ -36,7 +36,7 @@
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
-            <version>1.13.2-R0.1-SNAPSHOT</version>
+            <version>1.14.3-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

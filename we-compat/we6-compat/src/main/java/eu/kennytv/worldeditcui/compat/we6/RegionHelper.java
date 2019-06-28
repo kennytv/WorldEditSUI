@@ -70,6 +70,12 @@ public final class RegionHelper implements IRegionHelper {
     }
 
     @Override
+    public SimpleVector getMaximumPoint(final Region region) {
+        final com.sk89q.worldedit.Vector maximum = region.getMaximumPoint();
+        return new SimpleVector(maximum.getX(), maximum.getY(), maximum.getZ());
+    }
+
+    @Override
     public SimpleVector getOrigin(final Clipboard clipboard) {
         final com.sk89q.worldedit.Vector origin = clipboard.getOrigin();
         return new SimpleVector(origin.getX(), origin.getY(), origin.getZ());

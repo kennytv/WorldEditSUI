@@ -103,7 +103,7 @@ public final class Settings {
         if (permission.isEmpty() || permission.equalsIgnoreCase("none"))
             permission = null;
 
-        cacheLocations = config.getBoolean("cache-calculated-positions");
+        cacheLocations = config.getBoolean("cache-calculated-positions", true);
         updateChecks = config.getBoolean("update-checks", true);
         sendParticlesToAll = config.getBoolean("send-particles-to-all");
         persistentToggles = config.getBoolean("persistent-toggles");

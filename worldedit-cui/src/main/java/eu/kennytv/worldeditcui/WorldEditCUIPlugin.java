@@ -102,6 +102,7 @@ public final class WorldEditCUIPlugin extends JavaPlugin {
     @Override
     public void onDisable() {
         settings.saveData();
+        getServer().getOnlinePlayers().forEach(player -> userManager.deleteUser(player));
     }
 
     private void printEnableMessage() {

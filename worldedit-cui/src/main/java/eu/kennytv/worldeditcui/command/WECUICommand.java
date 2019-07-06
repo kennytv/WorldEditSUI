@@ -20,6 +20,7 @@ package eu.kennytv.worldeditcui.command;
 
 import eu.kennytv.worldeditcui.Settings;
 import eu.kennytv.worldeditcui.WorldEditCUIPlugin;
+import eu.kennytv.worldeditcui.user.SelectionCache;
 import eu.kennytv.worldeditcui.user.User;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -53,7 +54,12 @@ public final class WECUICommand implements CommandExecutor, TabCompleter {
                 if (user.isSelectionShown()) {
                     player.sendMessage(getMessage("particlesHidden"));
                     user.setSelectionShown(false);
-                    user.setSelectionCache(null);
+
+                    final SelectionCache cache = user.getSelectionCache();
+                    if (cache != null) {
+                        cache.getVectors().clear();
+                        user.setSelectionCache(null);
+                    }
                 } else {
                     player.sendMessage(getMessage("particlesShown"));
                     user.setSelectionShown(true);

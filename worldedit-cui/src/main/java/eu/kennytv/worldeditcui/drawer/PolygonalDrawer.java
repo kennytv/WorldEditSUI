@@ -39,7 +39,7 @@ public final class PolygonalDrawer extends DrawerBase {
         final Simple2DVector[] points = plugin.getRegionHelper().getPoints(polyRegion);
         Simple2DVector last = points[0];
         final int bottom = ((FlatRegion) region).getMinimumY();
-        final Location location = new Location(plugin.getServer().getWorld(region.getWorld().getName()), last.getX(), bottom, last.getZ());
+        final Location location = new Location(player.getWorld(), last.getX(), bottom, last.getZ());
         final int height = region.getHeight();
         final int top = bottom + height;
         final int upwardsTicks = height * settings.getParticlesPerBlock();

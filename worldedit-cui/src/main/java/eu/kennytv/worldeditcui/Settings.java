@@ -166,12 +166,16 @@ public final class Settings {
     }
 
     private ViaParticle loadParticle(final YamlConfiguration config, final String s, final ViaParticle defaultParticle) {
-        final String particleName = config.getString(s, defaultParticle.name());
+        final String particleName = config.getString(s, defaultParticle.name()).toUpperCase().replace("MINECRAFT:", "");
         final ViaParticle particle = ViaParticle.getByName(particleName);
         if (particle == null) {
             plugin.getLogger().warning("Unknown particle for " + s + ": " + particleName.toUpperCase());
             plugin.getLogger().warning("Switched to default particle: " + defaultParticle);
             return defaultParticle;
+        }
+        if (particle == ViaParticle.BLOCK_CRACK || particle == ViaParticle.BLOCK_DUST || particle == ViaParticle.ITEM_CRACK
+                || particle == ViaParticle.REDSTONE || particle == ViaParticle.FALLING_DUST) {
+            plugin.getLogger().warning("This particle needs custom data, which isn't yet implemented in the plugin -> This particle might not work correctly!");
         }
         return particle;
     }

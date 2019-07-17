@@ -41,7 +41,7 @@ public final class EllipsoidDrawer extends DrawerBase {
         final int max = Math.max(length, width);
 
         final SimpleVector center = plugin.getRegionHelper().getCenter(region, 0.5, 0.5, 0.5);
-        final Location location = new Location(plugin.getServer().getWorld(region.getWorld().getName()), center.getX(), center.getY(), center.getZ());
+        final Location location = new Location(player.getWorld(), center.getX(), center.getY(), center.getZ());
         final double heightInterval = Math.PI / (settings.getParticlesPerBlock() * height);
         final double wideInterval = Math.PI / (settings.getParticlesPerBlock() * max / 10D);
         showGrid(player, width, length, height, location, wideInterval, heightInterval);

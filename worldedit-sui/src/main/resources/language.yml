@@ -1,0 +1,14 @@
+prefix: "&8[&eWorldEditSUI&8]"
+
+noPermission: "%prefix% &cYou don't have the permission to use this command."
+particlesShown: "%prefix% &aParticles of your selection are now shown again!"
+particlesHidden: "%prefix% &cParticles of your selection are now hidden!"
+clipboardShown: "%prefix% &aParticles of your clipboard are now shown at relative to your location!"
+clipboardHidden: "%prefix% &cParticles of your clipboard are now hidden again!"
+reload: "%prefix% &aReloaded config and language file!"
+idled: "%prefix% &7The selection particles are no longer displayed, because you didn't change it for a while."
+
+helpHeader: "&8===========[ &eWorldEditSUI &8]==========="
+helpReload: "&6/wesui reload &7(Reloads the config file)"
+helpToggle: "&6/wesui toggle &7(Toggles the visibility of your selection-particles)"
+helpToggleClipboard: "&6/wesui toggleclipboard &7(Toggles the visibility of your clipboard-particles)"

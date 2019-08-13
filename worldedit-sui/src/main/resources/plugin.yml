@@ -1,0 +1,12 @@
+name: ${project.name}
+version: ${project.version}
+main: eu.kennytv.worldeditsui.WorldEditSUIPlugin
+authors: [KennyTV]
+depend: [WorldEdit]
+website: https://www.spigotmc.org/resources/worldeditsui.60726/
+api-version: 1.13
+
+commands:
+  worldeditsui:
+    description: WorldEditSUI main command.
+    aliases: [wesui, wecui] # keep wecui alias for legacy reasons

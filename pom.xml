@@ -7,11 +7,12 @@
     <groupId>eu.kennytv.worldeditsui</groupId>
     <artifactId>worldedit-sui-parent</artifactId>
     <packaging>pom</packaging>
-    <version>1.5.2</version>
+    <version>1.6</version>
 
     <modules>
         <module>worldedit-sui</module>
         <module>we-compat</module>
+        <module>nms-compat</module>
     </modules>
 
     <properties>
@@ -36,7 +37,7 @@
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
-            <version>1.14.3-R0.1-SNAPSHOT</version>
+            <version>1.14.4-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

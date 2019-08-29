@@ -5,16 +5,18 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>eu.kennytv.worldeditsui</groupId>
-        <artifactId>worldedit-sui-parent</artifactId>
+        <artifactId>nms-compat</artifactId>
         <version>1.6</version>
     </parent>
 
-    <packaging>pom</packaging>
-    <artifactId>we-compat</artifactId>
+    <artifactId>v1_9-compat</artifactId>
 
-    <modules>
-        <module>we-compat-common</module>
-        <module>we6-compat</module>
-        <module>we7-compat</module>
-    </modules>
+    <dependencies>
+        <dependency>
+            <groupId>eu.kennytv.worldeditsui</groupId>
+            <artifactId>nms-compat-common</artifactId>
+            <version>${project.parent.version}</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
 </project>

@@ -72,7 +72,7 @@ public final class CuboidDrawer extends DrawerBase {
     private void drawLines(final Player player, final Location location, final int gridSpace, final int topGridSpace,
                            final double maxTicks, final double maxGridTicks, final double maxTopGridTicks,
                            final double height, final boolean x, final boolean copySelection) {
-        // Untere Reihe (mit senkrechter Grid)
+        // Lower row (with vertical grid)
         final double oldX = location.getX();
         final double oldZ = location.getZ();
         int blocks = 0;
@@ -105,7 +105,7 @@ public final class CuboidDrawer extends DrawerBase {
             playEffect(location, player, copySelection);
         }
 
-        // Obere Reihe
+        // Upper row
         location.setX(oldX);
         location.setZ(oldZ);
         location.setY(location.getY() + height);
@@ -157,7 +157,7 @@ public final class CuboidDrawer extends DrawerBase {
     private void setGrid(final Player player, final Location location, final int gridSpace, final double maxTicks, final double maxGridTicks, final double xAddition, final double zAddition, final boolean copySelection) {
         int blocks = 0;
         for (int i = 0; i < maxTicks; i++) {
-            // Waagerechte Grid
+            // Horizontal grid
             if (settings.hasAdvancedGrid() && !copySelection && blocks++ % gridSpace == 0 && i != 0) {
                 final Location clone = location.clone();
                 for (double j = 0; j < maxGridTicks; j++) {

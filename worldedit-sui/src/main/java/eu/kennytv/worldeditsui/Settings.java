@@ -18,8 +18,9 @@
 
 package eu.kennytv.worldeditsui;
 
-import eu.kennytv.util.particlelib.ViaParticle;
+import eu.kennytv.worldeditsui.compat.nms.ViaParticle;
 import org.bukkit.ChatColor;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.*;
@@ -35,6 +36,7 @@ public final class Settings {
     private boolean changedUserData;
 
     private String permission;
+    private String otherParticlesPermission;
     private String wandItem;
     private double particleSpace;
     private double particleGridSpace;
@@ -53,7 +55,9 @@ public final class Settings {
     private boolean showByDefault;
     private boolean showClipboardByDefault;
     private ViaParticle particle;
-    private ViaParticle copyParticle;
+    private ViaParticle clipboardParticle;
+    private ViaParticle othersParticle;
+    private ViaParticle othersClipboardParticle;
 
     Settings(final WorldEditSUIPlugin plugin) {
         this.plugin = plugin;
@@ -68,7 +72,17 @@ public final class Settings {
         wandItem = config.getString("wand", "").toUpperCase().replace("MINECRAFT:", "");
 
         particle = loadParticle(config, "particle", ViaParticle.FLAME);
-        copyParticle = loadParticle(config, "copy-region-particle", ViaParticle.VILLAGER_HAPPY);
+        clipboardParticle = loadParticle(config, "clipboard-particle", ViaParticle.VILLAGER_HAPPY);
+
+        final ConfigurationSection sendToAllSection = config.getConfigurationSection("send-particles-to-all");
+        sendParticlesToAll = sendToAllSection.getBoolean("enabled");
+        otherParticlesPermission = sendToAllSection.getString("view-others-particles-perm", "");
+        if (otherParticlesPermission.isEmpty() || otherParticlesPermission.equalsIgnoreCase("none")) {
+            otherParticlesPermission = null;
+        }
+        plugin.getParticleHelper().setPermission(otherParticlesPermission);
+        othersParticle = loadParticle(sendToAllSection, "others-particle", ViaParticle.FLAME);
+        othersClipboardParticle = loadParticle(sendToAllSection, "others-clipboard-particle", ViaParticle.VILLAGER_HAPPY);
 
         particlesPerBlock = config.getInt("particles-per-block", 4);
         if (particlesPerBlock < 0.5 || particlesPerBlock > 5) {
@@ -101,12 +115,12 @@ public final class Settings {
         }
 
         permission = config.getString("permission", "");
-        if (permission.isEmpty() || permission.equalsIgnoreCase("none"))
+        if (permission.isEmpty() || permission.equalsIgnoreCase("none")) {
             permission = null;
+        }
 
         cacheLocations = config.getBoolean("cache-calculated-positions", true);
         updateChecks = config.getBoolean("update-checks", true);
-        sendParticlesToAll = config.getBoolean("send-particles-to-all");
         persistentToggles = config.getBoolean("persistent-toggles");
         showByDefault = config.getBoolean("show-selection-by-default", true);
         showClipboardByDefault = config.getBoolean("show-clipboard-by-default");
@@ -166,8 +180,8 @@ public final class Settings {
         }
     }
 
-    private ViaParticle loadParticle(final YamlConfiguration config, final String s, final ViaParticle defaultParticle) {
-        final String particleName = config.getString(s, defaultParticle.name()).toUpperCase().replace("MINECRAFT:", "");
+    private ViaParticle loadParticle(final ConfigurationSection section, final String s, final ViaParticle defaultParticle) {
+        final String particleName = section.getString(s, defaultParticle.name()).toUpperCase().replace("MINECRAFT:", "");
         final ViaParticle particle = ViaParticle.getByName(particleName);
         if (particle == null) {
             plugin.getLogger().warning("Unknown particle for " + s + ": " + particleName.toUpperCase());
@@ -210,6 +224,10 @@ public final class Settings {
 
     public String getPermission() {
         return permission;
+    }
+
+    public String getOtherParticlesPermission() {
+        return otherParticlesPermission;
     }
 
     public double getParticleSpace() {
@@ -280,8 +298,16 @@ public final class Settings {
         return particle;
     }
 
-    public ViaParticle getCopyParticle() {
-        return copyParticle;
+    public ViaParticle getClipboardParticle() {
+        return clipboardParticle;
+    }
+
+    public ViaParticle getOthersParticle() {
+        return othersParticle;
+    }
+
+    public ViaParticle getOthersClipboardParticle() {
+        return othersClipboardParticle;
     }
 
     public String getWandItem() {

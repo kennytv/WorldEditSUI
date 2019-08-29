@@ -1,12 +1,12 @@
 prefix: "&8[&eWorldEditSUI&8]"
 
 noPermission: "%prefix% &cYou don't have the permission to use this command."
-particlesShown: "%prefix% &aParticles of your selection are now shown again!"
+particlesShown: "%prefix% &aParticles of your selection are now shown!"
 particlesHidden: "%prefix% &cParticles of your selection are now hidden!"
-clipboardShown: "%prefix% &aParticles of your clipboard are now shown at relative to your location!"
-clipboardHidden: "%prefix% &cParticles of your clipboard are now hidden again!"
+clipboardShown: "%prefix% &aParticles of your clipboard are now shown!"
+clipboardHidden: "%prefix% &cParticles of your clipboard are now hidden!"
 reload: "%prefix% &aReloaded config and language file!"
-idled: "%prefix% &7The selection particles are no longer displayed, because you didn't change it for a while."
+idled: "%prefix% &7The selection particles are no longer displayed. Update your selection to display them again."
 
 helpHeader: "&8===========[ &eWorldEditSUI &8]==========="
 helpReload: "&6/wesui reload &7(Reloads the config file)"

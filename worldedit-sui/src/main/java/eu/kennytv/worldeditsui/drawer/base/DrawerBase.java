@@ -18,11 +18,10 @@
 
 package eu.kennytv.worldeditsui.drawer.base;
 
-import eu.kennytv.util.particlelib.ParticleEffectUtil;
-import eu.kennytv.util.particlelib.ViaParticle;
 import eu.kennytv.worldeditsui.Settings;
 import eu.kennytv.worldeditsui.WorldEditSUIPlugin;
 import eu.kennytv.worldeditsui.compat.SimpleVector;
+import eu.kennytv.worldeditsui.compat.nms.ViaParticle;
 import eu.kennytv.worldeditsui.user.User;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -43,17 +42,18 @@ public abstract class DrawerBase implements Drawer {
     }
 
     protected void playEffect(final Location location, final Player player, final boolean copySelection) {
-        final ViaParticle particle = copySelection ? settings.getCopyParticle() : settings.getParticle();
         if (settings.cacheLocations() && !copySelection) {
             final User user = plugin.getUserManager().getUser(player);
             if (user == null) return;
             user.getSelectionCache().getVectors().add(new SimpleVector(location.getX(), location.getY(), location.getZ()));
         }
 
+        final ViaParticle particle = copySelection ? settings.getClipboardParticle() : settings.getParticle();
         if (settings.sendParticlesToAll()) {
-            ParticleEffectUtil.playEffect(particle, location, 0, 1, settings.getParticleViewDistance());
+            final ViaParticle othersParticle = copySelection ? settings.getOthersClipboardParticle() : settings.getOthersParticle();
+            plugin.getParticleHelper().playEffectToAll(particle, othersParticle, location, 0, 1, settings.getParticleViewDistance(), player);
         } else {
-            ParticleEffectUtil.playEffect(particle, location, 0, 1, settings.getParticleViewDistance(), player);
+            plugin.getParticleHelper().playEffect(particle, location, 0, 1, settings.getParticleViewDistance(), player);
         }
     }
 }

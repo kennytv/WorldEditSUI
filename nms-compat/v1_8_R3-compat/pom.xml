@@ -5,23 +5,23 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>eu.kennytv.worldeditsui</groupId>
-        <artifactId>we-compat</artifactId>
+        <artifactId>nms-compat</artifactId>
         <version>1.6</version>
     </parent>
 
-    <artifactId>we6-compat</artifactId>
+    <artifactId>v1_8_R3-compat</artifactId>
 
     <dependencies>
         <dependency>
             <groupId>eu.kennytv.worldeditsui</groupId>
-            <artifactId>we-compat-common</artifactId>
+            <artifactId>nms-compat-common</artifactId>
             <version>${project.parent.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.sk89q.worldedit</groupId>
-            <artifactId>worldedit-bukkit</artifactId>
-            <version>6.1.4-SNAPSHOT</version>
+            <groupId>org.spigotmc</groupId>
+            <artifactId>spigot</artifactId>
+            <version>1.8.8-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

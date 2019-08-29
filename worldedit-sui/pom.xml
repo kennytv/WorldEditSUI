@@ -6,7 +6,7 @@
     <parent>
         <groupId>eu.kennytv.worldeditsui</groupId>
         <artifactId>worldedit-sui-parent</artifactId>
-        <version>1.5.2</version>
+        <version>1.6</version>
     </parent>
 
     <artifactId>worldedit-sui</artifactId>
@@ -32,9 +32,21 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>eu.kennytv.particlelib</groupId>
-            <artifactId>particlelib</artifactId>
-            <version>1.0</version>
+            <groupId>eu.kennytv.worldeditsui</groupId>
+            <artifactId>nms-compat-common</artifactId>
+            <version>${project.parent.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>eu.kennytv.worldeditsui</groupId>
+            <artifactId>v1_9-compat</artifactId>
+            <version>${project.parent.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>eu.kennytv.worldeditsui</groupId>
+            <artifactId>v1_8_R3-compat</artifactId>
+            <version>${project.parent.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>

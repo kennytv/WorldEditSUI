@@ -24,6 +24,7 @@ import com.sk89q.worldedit.regions.CylinderRegion;
 import com.sk89q.worldedit.regions.EllipsoidRegion;
 import com.sk89q.worldedit.regions.Polygonal2DRegion;
 import com.sk89q.worldedit.regions.Region;
+import com.sk89q.worldedit.session.ClipboardHolder;
 import org.bukkit.Material;
 
 public interface IRegionHelper {
@@ -43,6 +44,8 @@ public interface IRegionHelper {
     SimpleVector getMaximumPoint(Region region);
 
     SimpleVector getOrigin(Clipboard clipboard);
+
+    Region transformAndReShift(ClipboardHolder holder, Region region);
 
     Region shift(Region region, double x, double y, double z);
 

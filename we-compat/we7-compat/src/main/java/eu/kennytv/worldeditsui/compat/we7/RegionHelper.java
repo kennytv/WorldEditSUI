@@ -24,7 +24,9 @@ import com.sk89q.worldedit.math.BlockVector2;
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.math.Vector2;
 import com.sk89q.worldedit.math.Vector3;
+import com.sk89q.worldedit.math.transform.Transform;
 import com.sk89q.worldedit.regions.*;
+import com.sk89q.worldedit.session.ClipboardHolder;
 import eu.kennytv.worldeditsui.compat.IRegionHelper;
 import eu.kennytv.worldeditsui.compat.Simple2DVector;
 import eu.kennytv.worldeditsui.compat.SimpleVector;
@@ -80,6 +82,18 @@ public final class RegionHelper implements IRegionHelper {
     public SimpleVector getOrigin(final Clipboard clipboard) {
         final BlockVector3 origin = clipboard.getOrigin();
         return new SimpleVector(origin.getX(), origin.getY(), origin.getZ());
+    }
+
+    @Override
+    public Region transformAndReShift(final ClipboardHolder holder, final Region region) {
+        final Transform transform = holder.getTransform();
+        final BlockVector3 origin = holder.getClipboard().getOrigin();
+        final BlockVector3 oldMin = region.getMinimumPoint();
+        final BlockVector3 oldMax = region.getMaximumPoint();
+        final BlockVector3 offset = oldMin.subtract(origin);
+        final BlockVector3 min = origin.add(transform.apply(offset.toVector3()).toBlockPoint());
+        final BlockVector3 max = min.add(transform.apply(oldMax.subtract(oldMin).toVector3()).toBlockPoint());
+        return new CuboidRegion(region.getWorld(), min, max);
     }
 
     @Override

@@ -41,8 +41,8 @@ public final class WESelectionListener implements Listener {
     public WESelectionListener(final WorldEditSUIPlugin plugin) {
         this.plugin = plugin;
         plugin.getWorldEditPlugin().getWorldEdit().getEventBus().register(this);
-        weCommands = Sets.newHashSet("/pos1", "/pos2", "/chunk", "/hpos1", "/hpos2", "/expand", "/contract", "/shift", "/outset", "/inset",
-                "/copy", "/cut", "/rotate", "/flip", "/clearclipboard");
+        weCommands = Sets.newHashSet("pos1", "pos2", "chunk", "hpos1", "hpos2", "expand", "contract", "shift", "outset", "inset",
+                "copy", "cut", "rotate", "flip", "clearclipboard");
 
         try {
             wand = plugin.getRegionHelper().getWand(plugin.getWorldEditPlugin());
@@ -84,9 +84,14 @@ public final class WESelectionListener implements Listener {
     @Subscribe
     public void worldEditCommand(final CommandEvent event) {
         if (!plugin.getSettings().isExpiryEnabled()) return;
-        if (event.getArguments().length() < 3) return;
 
-        final String command = event.getArguments().split(" ", 2)[0].toLowerCase();
+        String arguments = event.getArguments();
+        while (!arguments.isEmpty() && arguments.charAt(0) == '/') {
+            arguments = arguments.substring(1);
+        }
+        if (arguments.isEmpty()) return;
+
+        final String command = arguments.split(" ", 2)[0].toLowerCase();
         if (weCommands.stream().noneMatch(command::equals)) return;
         plugin.getUserManager().getExpireTimestamps().put(event.getActor().getUniqueId(), System.currentTimeMillis() + plugin.getSettings().getExpiresAfterMillis());
     }

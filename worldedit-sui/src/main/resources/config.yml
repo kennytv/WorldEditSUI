@@ -10,9 +10,9 @@ cache-calculated-positions: true
 # Just note that newly introduced particles obviously won't work in older versions.
 # Shown for the selection you currently have.
 particle: FLAME
-# Shown for the copied selection after using the WorldEdit //copy command.
+# Shown for the clipboard (after using WorldEdit's //copy command).
 # Can be enabled with the '/wesui toggleclipboard' command.
-copy-region-particle: VILLAGER_HAPPY
+clipboard-particle: VILLAGER_HAPPY
 
 # How many particles should be displayed for every block of length.
 # The recommended amount is between 2 and 4. Can be set from 1 to 5.
@@ -39,13 +39,20 @@ particle-expiry:
   # If enabled, players are notified if their particles disappear after the expiry.
   expire-message: true
 
-# If enabled, the particles will be sent to all players, rather than just to the player having the WorldEdit selection.
-# Might be useful when building as a group.
-send-particles-to-all: false
-
 # If set to 'none', every player will have their selection displayed.
 # Else, only players with the set permission will have particles for their selection.
 permission: "none"
+
+# If enabled, the particles will be sent to all players, rather than just to the player having the WorldEdit selection.
+# Might be useful when building as a group.
+send-particles-to-all:
+  enabled: false
+  # You can also limit those seeing the particles by a permission. Leave 'none' to let all players see them.
+  # Warning: If you have a (bad) perm plugin that does not cache its checks / takes a while for permission checks, leave this at 'none'.
+  view-others-particles-perm: "none"
+  # If you want people to see different particles for another player's selections, you can set them here.
+  others-particle: FLAME
+  others-clipboard-particle: VILLAGER_HAPPY
 
 # If set to false, players will have to use '/wesui toggle' first to be able to see the particles.
 show-selection-by-default: true

@@ -24,18 +24,21 @@ import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.bukkit.BukkitWorld;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
+import com.sk89q.worldedit.math.transform.Transform;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.regions.RegionSelector;
-import eu.kennytv.util.particlelib.ParticleEffectUtil;
+import com.sk89q.worldedit.session.ClipboardHolder;
 import eu.kennytv.worldeditsui.command.WESUICommand;
 import eu.kennytv.worldeditsui.compat.IRegionHelper;
 import eu.kennytv.worldeditsui.compat.SimpleVector;
+import eu.kennytv.worldeditsui.compat.nms.IParticleHelper;
 import eu.kennytv.worldeditsui.compat.we6.RegionHelper;
 import eu.kennytv.worldeditsui.drawer.DrawManager;
 import eu.kennytv.worldeditsui.listener.PlayerJoinListener;
 import eu.kennytv.worldeditsui.listener.PlayerQuitListener;
 import eu.kennytv.worldeditsui.listener.WESelectionListener;
 import eu.kennytv.worldeditsui.metrics.MetricsLite;
+import eu.kennytv.worldeditsui.nms.ParticleHelper;
 import eu.kennytv.worldeditsui.user.SelectionCache;
 import eu.kennytv.worldeditsui.user.User;
 import eu.kennytv.worldeditsui.user.UserManager;
@@ -58,6 +61,7 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
 
     private static final String PREFIX = "§8[§eWorldEditSUI§8] ";
     private IRegionHelper regionHelper;
+    private IParticleHelper particleHelper;
     private UserManager userManager;
     private Settings settings;
     private DrawManager drawManager;
@@ -72,19 +76,34 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
         version = new Version(getDescription().getVersion());
         printEnableMessage();
 
-        settings = new Settings(this);
-        userManager = new UserManager(settings);
-        drawManager = new DrawManager(this);
-
-        final PluginManager pm = getServer().getPluginManager();
-        worldEditPlugin = ((WorldEditPlugin) pm.getPlugin("WorldEdit"));
-
         try {
             Class.forName("com.sk89q.worldedit.math.Vector2");
             regionHelper = new eu.kennytv.worldeditsui.compat.we7.RegionHelper();
         } catch (final ClassNotFoundException e) {
             regionHelper = new RegionHelper();
         }
+        try {
+            Class.forName("org.bukkit.Particle");
+            particleHelper = new ParticleHelper();
+        } catch (final ClassNotFoundException e) {
+            try {
+                Class.forName("net.minecraft.server.v1_8_R3.EnumParticle");
+            } catch (ClassNotFoundException ex) {
+                // If you want to support lower versions  than 1.8(.4), feel free to add a new ParticleHelperModule ¯\_(ツ)_/¯
+                getLogger().severe("Sorry - this plugin only supports Minecraft versions from 1.8.4 upwards.");
+                getServer().getPluginManager().disablePlugin(this);
+                return;
+            }
+
+            particleHelper = new eu.kennytv.worldeditsui.compat.nms.v1_8_R3.ParticleHelper();
+        }
+
+        settings = new Settings(this);
+        userManager = new UserManager(settings);
+        drawManager = new DrawManager(this);
+
+        final PluginManager pm = getServer().getPluginManager();
+        worldEditPlugin = ((WorldEditPlugin) pm.getPlugin("WorldEdit"));
 
         // Imagine someone using the server reload command 👀
         getServer().getOnlinePlayers().forEach(p -> userManager.createUser(p));
@@ -181,10 +200,16 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
             // Clipboard
             if (user.isClipboardShown()) {
                 try {
-                    final Clipboard clipboard = session.getClipboard().getClipboard();
-                    final Region region = clipboard.getRegion();
+                    final ClipboardHolder holder = session.getClipboard();
+                    final Clipboard clipboard = holder.getClipboard();
                     final Location location = player.getLocation();
                     final SimpleVector origin = regionHelper.getOrigin(clipboard);
+
+                    // Transform the clipboard if necessary
+                    final Transform transform = holder.getTransform();
+                    final Region region = transform.isIdentity() ? clipboard.getRegion() : regionHelper.transformAndReShift(holder, clipboard.getRegion());
+
+                    // Shift the transformed region relative to the player
                     final Region shiftedRegion = regionHelper.shift(region,
                             location.getBlockX() - origin.getX(), location.getBlockY() - origin.getY(), location.getBlockZ() - origin.getZ());
                     drawManager.getDrawer(SelectionType.CUBOID).draw(player, shiftedRegion, true);
@@ -231,9 +256,9 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
                         location.setY(vector.getY());
                         location.setZ(vector.getZ());
                         if (settings.sendParticlesToAll()) {
-                            ParticleEffectUtil.playEffect(settings.getParticle(), location, 0, 1, settings.getParticleViewDistance());
+                            particleHelper.playEffectToAll(settings.getParticle(), settings.getOthersParticle(), location, 0, 1, settings.getParticleViewDistance(), player);
                         } else {
-                            ParticleEffectUtil.playEffect(settings.getParticle(), location, 0, 1, settings.getParticleViewDistance(), player);
+                            particleHelper.playEffect(settings.getParticle(), location, 0, 1, settings.getParticleViewDistance(), player);
                         }
                     }
                     return;
@@ -279,5 +304,9 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
 
     public IRegionHelper getRegionHelper() {
         return regionHelper;
+    }
+
+    public IParticleHelper getParticleHelper() {
+        return particleHelper;
     }
 }

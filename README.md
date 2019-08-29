@@ -7,9 +7,13 @@ It aims at a higher performance and lesser memory impact by having a quite simpl
 
 You can read up on everything else and see examples on the [**Spigot page**](https://www.spigotmc.org/resources/worldeditsui.60726/).
 
-## Compiling
-This branch specifically drops 1.8 support so that you can compile the project without any extra dependencies you'd have to install yourself (see the master branch for 1.8 support).
+## Legacy support
+This branch supports Minecraft versions from 1.9 upwards.
+If you want a jar that supports 1.8.4-1.8.9 as well (everything below 1.8.4 still unsupported), see the `1.8-support` branch / the [**releases download page**](https://github.com/KennyTV/WorldEditSUI/releases).
 
+The default master branch does not contain 1.8 support, since that version seems to be used by only a very small fraction of WESUI users and requires some extra encapsulation and small additions for every new Minecraft release.
+
+## Compiling
 Use Maven to compile the project (`mvn clean package`).
 
 ## Licence

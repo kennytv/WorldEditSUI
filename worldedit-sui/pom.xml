@@ -44,12 +44,6 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>eu.kennytv.worldeditsui</groupId>
-            <artifactId>v1_8_R3-compat</artifactId>
-            <version>${project.parent.version}</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
             <groupId>com.sk89q.worldedit</groupId>
             <artifactId>worldedit-bukkit</artifactId>
             <version>7.0.1-SNAPSHOT</version>

@@ -86,16 +86,10 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
             Class.forName("org.bukkit.Particle");
             particleHelper = new ParticleHelper();
         } catch (final ClassNotFoundException e) {
-            try {
-                Class.forName("net.minecraft.server.v1_8_R3.EnumParticle");
-            } catch (ClassNotFoundException ex) {
-                // If you want to support lower versions  than 1.8(.4), feel free to add a new ParticleHelperModule ¯\_(ツ)_/¯
-                getLogger().severe("Sorry - this plugin only supports Minecraft versions from 1.8.4 upwards.");
-                getServer().getPluginManager().disablePlugin(this);
-                return;
-            }
-
-            particleHelper = new eu.kennytv.worldeditsui.compat.nms.v1_8_R3.ParticleHelper();
+            // See the master branch for 1.8 support
+            getLogger().severe("Sorry - this plugin only supports Minecraft versions from 1.9 upwards.");
+            getServer().getPluginManager().disablePlugin(this);
+            return;
         }
 
         settings = new Settings(this);

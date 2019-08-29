@@ -18,8 +18,8 @@
 
 package eu.kennytv.worldeditsui;
 
-import eu.kennytv.worldeditsui.compat.nms.ViaParticle;
 import org.bukkit.ChatColor;
+import org.bukkit.Particle;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -54,10 +54,10 @@ public final class Settings {
     private boolean persistentToggles;
     private boolean showByDefault;
     private boolean showClipboardByDefault;
-    private ViaParticle particle;
-    private ViaParticle clipboardParticle;
-    private ViaParticle othersParticle;
-    private ViaParticle othersClipboardParticle;
+    private Particle particle;
+    private Particle clipboardParticle;
+    private Particle othersParticle;
+    private Particle othersClipboardParticle;
 
     Settings(final WorldEditSUIPlugin plugin) {
         this.plugin = plugin;
@@ -71,8 +71,8 @@ public final class Settings {
         final YamlConfiguration config = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "config.yml"));
         wandItem = config.getString("wand", "").toUpperCase().replace("MINECRAFT:", "");
 
-        particle = loadParticle(config, "particle", ViaParticle.FLAME);
-        clipboardParticle = loadParticle(config, "clipboard-particle", ViaParticle.VILLAGER_HAPPY);
+        particle = loadParticle(config, "particle", Particle.FLAME);
+        clipboardParticle = loadParticle(config, "clipboard-particle", Particle.VILLAGER_HAPPY);
 
         final ConfigurationSection sendToAllSection = config.getConfigurationSection("send-particles-to-all");
         sendParticlesToAll = sendToAllSection.getBoolean("enabled");
@@ -81,8 +81,8 @@ public final class Settings {
             otherParticlesPermission = null;
         }
         plugin.getParticleHelper().setPermission(otherParticlesPermission);
-        othersParticle = loadParticle(sendToAllSection, "others-particle", ViaParticle.FLAME);
-        othersClipboardParticle = loadParticle(sendToAllSection, "others-clipboard-particle", ViaParticle.VILLAGER_HAPPY);
+        othersParticle = loadParticle(sendToAllSection, "others-particle", Particle.FLAME);
+        othersClipboardParticle = loadParticle(sendToAllSection, "others-clipboard-particle", Particle.VILLAGER_HAPPY);
 
         particlesPerBlock = config.getInt("particles-per-block", 4);
         if (particlesPerBlock < 0.5 || particlesPerBlock > 5) {
@@ -180,16 +180,19 @@ public final class Settings {
         }
     }
 
-    private ViaParticle loadParticle(final ConfigurationSection section, final String s, final ViaParticle defaultParticle) {
+    private Particle loadParticle(final ConfigurationSection section, final String s, final Particle defaultParticle) {
         final String particleName = section.getString(s, defaultParticle.name()).toUpperCase().replace("MINECRAFT:", "");
-        final ViaParticle particle = ViaParticle.getByName(particleName);
-        if (particle == null) {
+        final Particle particle;
+        try {
+            particle = Particle.valueOf(particleName);
+        } catch (final Exception e) {
             plugin.getLogger().warning("Unknown particle for " + s + ": " + particleName.toUpperCase());
             plugin.getLogger().warning("Switched to default particle: " + defaultParticle);
             return defaultParticle;
         }
-        if (particle == ViaParticle.BLOCK_CRACK || particle == ViaParticle.BLOCK_DUST || particle == ViaParticle.ITEM_CRACK
-                || particle == ViaParticle.REDSTONE || particle == ViaParticle.FALLING_DUST) {
+
+        if (particle == Particle.BLOCK_CRACK || particle == Particle.BLOCK_DUST || particle == Particle.ITEM_CRACK
+                || particle == Particle.REDSTONE || particle == Particle.FALLING_DUST) {
             plugin.getLogger().warning("This particle needs custom data, which isn't yet implemented in the plugin -> This particle might not work correctly!");
         }
         return particle;
@@ -294,19 +297,19 @@ public final class Settings {
         return cacheLocations;
     }
 
-    public ViaParticle getParticle() {
+    public Particle getParticle() {
         return particle;
     }
 
-    public ViaParticle getClipboardParticle() {
+    public Particle getClipboardParticle() {
         return clipboardParticle;
     }
 
-    public ViaParticle getOthersParticle() {
+    public Particle getOthersParticle() {
         return othersParticle;
     }
 
-    public ViaParticle getOthersClipboardParticle() {
+    public Particle getOthersClipboardParticle() {
         return othersClipboardParticle;
     }
 

@@ -31,17 +31,16 @@ import com.sk89q.worldedit.session.ClipboardHolder;
 import eu.kennytv.worldeditsui.command.WESUICommand;
 import eu.kennytv.worldeditsui.compat.IRegionHelper;
 import eu.kennytv.worldeditsui.compat.SimpleVector;
-import eu.kennytv.worldeditsui.compat.nms.IParticleHelper;
 import eu.kennytv.worldeditsui.compat.we6.RegionHelper;
 import eu.kennytv.worldeditsui.drawer.DrawManager;
 import eu.kennytv.worldeditsui.listener.PlayerJoinListener;
 import eu.kennytv.worldeditsui.listener.PlayerQuitListener;
 import eu.kennytv.worldeditsui.listener.WESelectionListener;
 import eu.kennytv.worldeditsui.metrics.MetricsLite;
-import eu.kennytv.worldeditsui.nms.ParticleHelper;
 import eu.kennytv.worldeditsui.user.SelectionCache;
 import eu.kennytv.worldeditsui.user.User;
 import eu.kennytv.worldeditsui.user.UserManager;
+import eu.kennytv.worldeditsui.util.ParticleHelper;
 import eu.kennytv.worldeditsui.util.SelectionType;
 import eu.kennytv.worldeditsui.util.Version;
 import org.bukkit.Location;
@@ -61,7 +60,7 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
 
     private static final String PREFIX = "§8[§eWorldEditSUI§8] ";
     private IRegionHelper regionHelper;
-    private IParticleHelper particleHelper;
+    private ParticleHelper particleHelper;
     private UserManager userManager;
     private Settings settings;
     private DrawManager drawManager;
@@ -84,13 +83,14 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
         }
         try {
             Class.forName("org.bukkit.Particle");
-            particleHelper = new ParticleHelper();
         } catch (final ClassNotFoundException e) {
             // See the master branch for 1.8 support
             getLogger().severe("Sorry - this plugin only supports Minecraft versions from 1.9 upwards.");
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
+
+        particleHelper = new ParticleHelper();
 
         settings = new Settings(this);
         userManager = new UserManager(settings);
@@ -300,7 +300,7 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
         return regionHelper;
     }
 
-    public IParticleHelper getParticleHelper() {
+    public ParticleHelper getParticleHelper() {
         return particleHelper;
     }
 }

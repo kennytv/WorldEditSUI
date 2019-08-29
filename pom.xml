@@ -12,7 +12,6 @@
     <modules>
         <module>worldedit-sui</module>
         <module>we-compat</module>
-        <module>nms-compat</module>
     </modules>
 
     <properties>

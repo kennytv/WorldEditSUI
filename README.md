@@ -9,7 +9,7 @@ You can read up on everything else and see examples on the [**Spigot page**](htt
 
 ## Compiling
 You need the Spigot server version 1.8.8-R0.1-SNAPSHOT installed (i.e. BuildTools/compiled source) to be able to compile the project.
-See the `without-1.8` branch to compile the project without it (done by simply dropping 1.8 support).
+See the `master` branch to compile the project without it (done by simply dropping 1.8 support).
 
 Use Maven to compile the project (`mvn clean package`).
 

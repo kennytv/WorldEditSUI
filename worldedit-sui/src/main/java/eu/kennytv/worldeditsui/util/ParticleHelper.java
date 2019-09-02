@@ -20,7 +20,6 @@ package eu.kennytv.worldeditsui.util;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.Particle;
 import org.bukkit.entity.Player;
 
 public final class ParticleHelper {
@@ -30,24 +29,24 @@ public final class ParticleHelper {
      */
     private String permission;
 
-    public void playEffect(final Particle particle, final Location location, final float speed, final int amount, final int radius, final Player player) {
+    public void playEffect(final ParticleData particle, final Location location, final float speed, final int amount, final int radius, final Player player) {
         playEffect(particle, location, 0, 0, 0, speed, amount, radius, player);
     }
 
-    public void playEffect(final Particle particle, final Location location, final float offX, final float offY, final float offZ, final float speed, final int amount, final int radius, final Player player) {
+    public void playEffect(final ParticleData particle, final Location location, final float offX, final float offY, final float offZ, final float speed, final int amount, final int radius, final Player player) {
         if (!location.getWorld().equals(player.getWorld())) return;
 
         final int radiusSquared = radius * radius;
         if (player.getLocation().distanceSquared(location) > radiusSquared) return;
 
-        player.spawnParticle(particle, location, amount, offX, offY, offZ, speed);
+        player.spawnParticle(particle.getParticle(), location, amount, offX, offY, offZ, speed, particle.getData());
     }
 
-    public void playEffectToAll(final Particle particle, final Particle othersParticle, final Location location, final float speed, final int amount, final int radius, final Player origin) {
+    public void playEffectToAll(final ParticleData particle, final ParticleData othersParticle, final Location location, final float speed, final int amount, final int radius, final Player origin) {
         playEffectToAll(particle, othersParticle, location, 0, 0, 0, speed, amount, radius, origin);
     }
 
-    public void playEffectToAll(final Particle particle, final Particle othersParticle, final Location location, final float offX, final float offY, final float offZ, final float speed, final int amount, final int radius, final Player origin) {
+    public void playEffectToAll(final ParticleData particle, final ParticleData othersParticle, final Location location, final float offX, final float offY, final float offZ, final float speed, final int amount, final int radius, final Player origin) {
         final int radiusSquared = radius * radius;
         for (final Player player : Bukkit.getOnlinePlayers()) {
             if (!location.getWorld().equals(player.getWorld())
@@ -56,7 +55,8 @@ public final class ParticleHelper {
             final boolean originalPlayer = player.getUniqueId().equals(origin.getUniqueId());
             if (!originalPlayer && !canSeeOtherParticles(player)) continue;
 
-            player.spawnParticle(originalPlayer ? particle : othersParticle, location, amount, offX, offY, offZ, speed);
+            final ParticleData toSend = originalPlayer ? particle : othersParticle;
+            player.spawnParticle(toSend.getParticle(), location, amount, offX, offY, offZ, speed, toSend.getData());
         }
     }
 

@@ -53,13 +53,13 @@ public final class CuboidDrawer extends DrawerBase {
         int gridSpaceX = 0;
         int gridSpaceZ = 0;
         int topGridSpace = 0;
-        if (settings.hasAdvancedGrid() && !copySelection) {
+        if (settings.hasAdvancedGrid(copySelection)) {
             gridSpaceX = settings.getParticlesPerBlock() * ((int) ((width * height) / AREA_FACTOR) + 1);
             gridSpaceZ = settings.getParticlesPerBlock() * ((int) ((length * height) / AREA_FACTOR) + 1);
             topGridSpace = settings.getParticlesPerBlock() * ((int) ((width * length) / AREA_FACTOR) + 1);
-            maxGridTicks = height * settings.getParticlesPerGridBlock() - 1;
-            maxTopGridTicksX = length * settings.getParticlesPerGridBlock() - 1;
-            maxTopGridTicksZ = width * settings.getParticlesPerGridBlock() - 1;
+            maxGridTicks = height * settings.getParticlesPerGridBlock(copySelection) - 1;
+            maxTopGridTicksX = length * settings.getParticlesPerGridBlock(copySelection) - 1;
+            maxTopGridTicksZ = width * settings.getParticlesPerGridBlock(copySelection) - 1;
         }
 
         drawLines(player, minimumPoint.clone(), gridSpaceX, topGridSpace, maxTicksX, maxGridTicks, maxTopGridTicksX, height, true, copySelection);
@@ -77,23 +77,16 @@ public final class CuboidDrawer extends DrawerBase {
         final double oldZ = location.getZ();
         int blocks = 0;
         for (int i = 0; i < maxTicks; i++) {
-            if (settings.hasAdvancedGrid() && !copySelection) {
+            if (settings.hasAdvancedGrid(copySelection)) {
                 if (blocks % gridSpace == 0 && i != 0) {
                     final Location clone = location.clone();
                     for (double j = 0; j < maxGridTicks; j++) {
-                        clone.add(0, settings.getParticleGridSpace(), 0);
+                        clone.add(0, settings.getParticleGridSpace(copySelection), 0);
                         playEffect(clone, player, copySelection);
                     }
                 }
                 if (topGridSpace != 0 && blocks % topGridSpace == 0 && i != 0) {
-                    final Location clone = location.clone();
-                    for (double j = 0; j < maxTopGridTicks; j++) {
-                        if (x)
-                            clone.add(0, 0, settings.getParticleGridSpace());
-                        else
-                            clone.add(settings.getParticleGridSpace(), 0, 0);
-                        playEffect(clone, player, copySelection);
-                    }
+                    tickGrid(player, location, maxTopGridTicks, x, copySelection);
                 }
                 blocks++;
             }
@@ -111,15 +104,8 @@ public final class CuboidDrawer extends DrawerBase {
         location.setY(location.getY() + height);
         blocks = 0;
         for (double i = 0; i < maxTicks; i++) {
-            if (settings.hasAdvancedGrid() && !copySelection && topGridSpace != 0 && blocks++ % topGridSpace == 0 && i != 0) {
-                final Location clone = location.clone();
-                for (double j = 0; j < maxTopGridTicks; j++) {
-                    if (x)
-                        clone.add(0, 0, settings.getParticleGridSpace());
-                    else
-                        clone.add(settings.getParticleGridSpace(), 0, 0);
-                    playEffect(clone, player);
-                }
+            if (settings.hasAdvancedGrid(copySelection) && topGridSpace != 0 && blocks++ % topGridSpace == 0 && i != 0) {
+                tickGrid(player, location, maxTopGridTicks, x, copySelection);
             }
 
             if (x)
@@ -130,15 +116,28 @@ public final class CuboidDrawer extends DrawerBase {
         }
     }
 
+    private void tickGrid(final Player player, final Location location, final double maxTopGridTicks, final boolean x, final boolean copySelection) {
+        final Location clone = location.clone();
+        for (double j = 0; j < maxTopGridTicks; j++) {
+            if (x)
+                clone.add(0, 0, settings.getParticleGridSpace(copySelection));
+            else
+                clone.add(settings.getParticleGridSpace(copySelection), 0, 0);
+            playEffect(clone, player, copySelection);
+        }
+    }
+
     private void drawPillarsAndGrid(final Player player, final Location minimum, final int gridSpaceX, final int gridSpaceZ,
                                     final double height, final double width, final double length, final boolean copySelection) {
+        final boolean advancedGridEnabled = settings.hasAdvancedGrid(copySelection);
+
         final double x = minimum.getX();
         final double y = minimum.getY();
         final double z = minimum.getZ();
-        final double gridSpace = settings.getParticleGridSpace();
+        final double gridSpace = advancedGridEnabled ? settings.getParticleGridSpace(copySelection) : 0;
         final double maxTicks = height * settings.getParticlesPerBlock();
-        final double maxGridTicksX = settings.hasAdvancedGrid() ? width * settings.getParticlesPerGridBlock() - 1 : 0;
-        final double maxGridTicksZ = settings.hasAdvancedGrid() ? length * settings.getParticlesPerGridBlock() - 1 : 0;
+        final double maxGridTicksX = advancedGridEnabled ? width * settings.getParticlesPerGridBlock(copySelection) - 1 : 0;
+        final double maxGridTicksZ = advancedGridEnabled ? length * settings.getParticlesPerGridBlock(copySelection) - 1 : 0;
         setGrid(player, minimum, gridSpaceX, maxTicks, maxGridTicksX, gridSpace, 0, copySelection);
         minimum.setX(x + width);
         minimum.setY(y);
@@ -158,11 +157,11 @@ public final class CuboidDrawer extends DrawerBase {
         int blocks = 0;
         for (int i = 0; i < maxTicks; i++) {
             // Horizontal grid
-            if (settings.hasAdvancedGrid() && !copySelection && blocks++ % gridSpace == 0 && i != 0) {
+            if (settings.hasAdvancedGrid(copySelection) && blocks++ % gridSpace == 0 && i != 0) {
                 final Location clone = location.clone();
                 for (double j = 0; j < maxGridTicks; j++) {
                     clone.add(xAddition, 0, zAddition);
-                    playEffect(clone, player);
+                    playEffect(clone, player, copySelection);
                 }
             }
 

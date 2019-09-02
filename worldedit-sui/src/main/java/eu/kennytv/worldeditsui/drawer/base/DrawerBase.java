@@ -22,8 +22,8 @@ import eu.kennytv.worldeditsui.Settings;
 import eu.kennytv.worldeditsui.WorldEditSUIPlugin;
 import eu.kennytv.worldeditsui.compat.SimpleVector;
 import eu.kennytv.worldeditsui.user.User;
+import eu.kennytv.worldeditsui.util.ParticleData;
 import org.bukkit.Location;
-import org.bukkit.Particle;
 import org.bukkit.entity.Player;
 
 public abstract class DrawerBase implements Drawer {
@@ -48,9 +48,9 @@ public abstract class DrawerBase implements Drawer {
             user.getSelectionCache().getVectors().add(new SimpleVector(location.getX(), location.getY(), location.getZ()));
         }
 
-        final Particle particle = copySelection ? settings.getClipboardParticle() : settings.getParticle();
+        final ParticleData particle = copySelection ? settings.getClipboardParticle() : settings.getParticle();
         if (settings.sendParticlesToAll()) {
-            final Particle othersParticle = copySelection ? settings.getOthersClipboardParticle() : settings.getOthersParticle();
+            final ParticleData othersParticle = copySelection ? settings.getOthersClipboardParticle() : settings.getOthersParticle();
             plugin.getParticleHelper().playEffectToAll(particle, othersParticle, location, 0, 1, settings.getParticleViewDistance(), player);
         } else {
             plugin.getParticleHelper().playEffect(particle, location, 0, 1, settings.getParticleViewDistance(), player);

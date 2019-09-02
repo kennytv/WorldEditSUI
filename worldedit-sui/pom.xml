@@ -15,24 +15,6 @@
     <dependencies>
         <dependency>
             <groupId>eu.kennytv.worldeditsui</groupId>
-            <artifactId>we-compat-common</artifactId>
-            <version>${project.parent.version}</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>eu.kennytv.worldeditsui</groupId>
-            <artifactId>we6-compat</artifactId>
-            <version>${project.parent.version}</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>eu.kennytv.worldeditsui</groupId>
-            <artifactId>we7-compat</artifactId>
-            <version>${project.parent.version}</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>eu.kennytv.worldeditsui</groupId>
             <artifactId>nms-compat-common</artifactId>
             <version>${project.parent.version}</version>
             <scope>compile</scope>
@@ -46,14 +28,8 @@
         <dependency>
             <groupId>com.sk89q.worldedit</groupId>
             <artifactId>worldedit-bukkit</artifactId>
-            <version>7.0.1-SNAPSHOT</version>
+            <version>6.1.4-SNAPSHOT</version>
             <scope>provided</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.bukkit</groupId>
-                    <artifactId>bukkit</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
     </dependencies>
 </project>

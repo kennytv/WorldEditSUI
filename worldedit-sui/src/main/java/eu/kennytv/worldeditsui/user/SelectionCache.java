@@ -18,7 +18,7 @@
 
 package eu.kennytv.worldeditsui.user;
 
-import eu.kennytv.worldeditsui.compat.SimpleVector;
+import com.sk89q.worldedit.Vector;
 import eu.kennytv.worldeditsui.util.SelectionType;
 
 import java.util.ArrayList;
@@ -26,12 +26,12 @@ import java.util.List;
 
 public final class SelectionCache {
 
-    private final List<SimpleVector> vectors = new ArrayList<>();
+    private final List<Vector> vectors = new ArrayList<>();
     private SelectionType selectionType = SelectionType.NONE;
-    private SimpleVector minimum;
-    private SimpleVector maximum;
+    private Vector minimum;
+    private Vector maximum;
 
-    public List<SimpleVector> getVectors() {
+    public List<Vector> getVectors() {
         return vectors;
     }
 
@@ -43,19 +43,19 @@ public final class SelectionCache {
         this.selectionType = selectionType;
     }
 
-    public SimpleVector getMinimum() {
+    public Vector getMinimum() {
         return minimum;
     }
 
-    public void setMinimum(final SimpleVector minimum) {
+    public void setMinimum(final Vector minimum) {
         this.minimum = minimum;
     }
 
-    public SimpleVector getMaximum() {
+    public Vector getMaximum() {
         return maximum;
     }
 
-    public void setMaximum(final SimpleVector maximum) {
+    public void setMaximum(final Vector maximum) {
         this.maximum = maximum;
     }
 }

@@ -51,7 +51,7 @@ public final class WESelectionListener implements Listener {
             if (plugin.getSettings().getWandItem().isEmpty()) {
                 plugin.getLogger().info("If you have set another item than the wooden axe as the WE wand, please write it into the WESUI config, for example:");
                 plugin.getLogger().info("wand: WOODEN_SWORD");
-                wand = Material.getMaterial("WOODEN_AXE");
+                wand = Material.WOOD_AXE;
                 return;
             }
 

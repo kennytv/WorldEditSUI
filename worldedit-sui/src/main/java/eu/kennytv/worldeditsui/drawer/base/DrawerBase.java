@@ -18,9 +18,9 @@
 
 package eu.kennytv.worldeditsui.drawer.base;
 
+import com.sk89q.worldedit.Vector;
 import eu.kennytv.worldeditsui.Settings;
 import eu.kennytv.worldeditsui.WorldEditSUIPlugin;
-import eu.kennytv.worldeditsui.compat.SimpleVector;
 import eu.kennytv.worldeditsui.compat.nms.ViaParticle;
 import eu.kennytv.worldeditsui.user.User;
 import org.bukkit.Location;
@@ -45,7 +45,7 @@ public abstract class DrawerBase implements Drawer {
         if (settings.cacheLocations() && !copySelection) {
             final User user = plugin.getUserManager().getUser(player);
             if (user == null) return;
-            user.getSelectionCache().getVectors().add(new SimpleVector(location.getX(), location.getY(), location.getZ()));
+            user.getSelectionCache().getVectors().add(new Vector(location.getX(), location.getY(), location.getZ()));
         }
 
         final ViaParticle particle = copySelection ? settings.getClipboardParticle() : settings.getParticle();

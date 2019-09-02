@@ -18,11 +18,12 @@
 
 package eu.kennytv.worldeditsui.drawer;
 
+import com.sk89q.worldedit.BlockVector2D;
+import com.sk89q.worldedit.Vector2D;
 import com.sk89q.worldedit.regions.FlatRegion;
 import com.sk89q.worldedit.regions.Polygonal2DRegion;
 import com.sk89q.worldedit.regions.Region;
 import eu.kennytv.worldeditsui.WorldEditSUIPlugin;
-import eu.kennytv.worldeditsui.compat.Simple2DVector;
 import eu.kennytv.worldeditsui.drawer.base.DrawerBase;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -36,15 +37,15 @@ public final class PolygonalDrawer extends DrawerBase {
     @Override
     public void draw(final Player player, final Region region) {
         final Polygonal2DRegion polyRegion = (Polygonal2DRegion) region;
-        final Simple2DVector[] points = plugin.getRegionHelper().getPoints(polyRegion);
-        Simple2DVector last = points[0];
+        final BlockVector2D[] points = plugin.getRegionHelper().getPoints(polyRegion);
+        BlockVector2D last = points[0];
         final int bottom = ((FlatRegion) region).getMinimumY();
         final Location location = new Location(player.getWorld(), last.getX(), bottom, last.getZ());
         final int height = region.getHeight();
         final int top = bottom + height;
         final int upwardsTicks = height * settings.getParticlesPerBlock();
         boolean skip = true;
-        for (final Simple2DVector point : points) {
+        for (final BlockVector2D point : points) {
             if (skip) {
                 skip = false;
                 continue;
@@ -59,7 +60,7 @@ public final class PolygonalDrawer extends DrawerBase {
         connect(points[0].subtract(points[points.length - 1]), bottom, top, upwardsTicks, location, player);
     }
 
-    private void connect(final Simple2DVector vector, final int bottom, final int top, final int upwardsTicks, final Location location, final Player player) {
+    private void connect(final Vector2D vector, final int bottom, final int top, final int upwardsTicks, final Location location, final Player player) {
         final double length = vector.length();
         final double factor = length * settings.getParticlesPerBlock();
         final double x = vector.getX() / factor;

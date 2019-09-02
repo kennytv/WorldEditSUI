@@ -18,9 +18,9 @@
 
 package eu.kennytv.worldeditsui.drawer;
 
+import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.regions.Region;
 import eu.kennytv.worldeditsui.WorldEditSUIPlugin;
-import eu.kennytv.worldeditsui.compat.SimpleVector;
 import eu.kennytv.worldeditsui.drawer.base.DrawerBase;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -42,7 +42,7 @@ public final class CuboidDrawer extends DrawerBase {
         final double width = region.getWidth();
         final double length = region.getLength();
         final double height = region.getHeight();
-        final SimpleVector minimumVector = plugin.getRegionHelper().getMinimumPoint(region);
+        final Vector minimumVector = region.getMinimumPoint();
         final Location minimumPoint = new Location(player.getWorld(), minimumVector.getX(), minimumVector.getY(), minimumVector.getZ());
 
         final double maxTicksX = width * settings.getParticlesPerBlock() - 1;

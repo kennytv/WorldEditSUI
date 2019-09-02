@@ -21,18 +21,17 @@ package eu.kennytv.worldeditsui;
 import com.sk89q.worldedit.EmptyClipboardException;
 import com.sk89q.worldedit.IncompleteRegionException;
 import com.sk89q.worldedit.LocalSession;
+import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.bukkit.BukkitWorld;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.math.transform.Transform;
 import com.sk89q.worldedit.regions.Region;
+import com.sk89q.worldedit.regions.RegionOperationException;
 import com.sk89q.worldedit.regions.RegionSelector;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import eu.kennytv.worldeditsui.command.WESUICommand;
-import eu.kennytv.worldeditsui.compat.IRegionHelper;
-import eu.kennytv.worldeditsui.compat.SimpleVector;
 import eu.kennytv.worldeditsui.compat.nms.IParticleHelper;
-import eu.kennytv.worldeditsui.compat.we6.RegionHelper;
 import eu.kennytv.worldeditsui.drawer.DrawManager;
 import eu.kennytv.worldeditsui.listener.PlayerJoinListener;
 import eu.kennytv.worldeditsui.listener.PlayerQuitListener;
@@ -41,6 +40,7 @@ import eu.kennytv.worldeditsui.metrics.MetricsLite;
 import eu.kennytv.worldeditsui.user.SelectionCache;
 import eu.kennytv.worldeditsui.user.User;
 import eu.kennytv.worldeditsui.user.UserManager;
+import eu.kennytv.worldeditsui.util.RegionHelper;
 import eu.kennytv.worldeditsui.util.SelectionType;
 import eu.kennytv.worldeditsui.util.Version;
 import org.bukkit.Location;
@@ -59,7 +59,7 @@ import java.net.URL;
 public final class WorldEditSUIPlugin extends JavaPlugin {
 
     private static final String PREFIX = "§8[§eWorldEditSUI§8] ";
-    private IRegionHelper regionHelper;
+    private RegionHelper regionHelper;
     private IParticleHelper particleHelper;
     private UserManager userManager;
     private Settings settings;
@@ -75,12 +75,7 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
         version = new Version(getDescription().getVersion());
         printEnableMessage();
 
-        try {
-            Class.forName("com.sk89q.worldedit.math.Vector2");
-            regionHelper = new eu.kennytv.worldeditsui.compat.we7.RegionHelper();
-        } catch (final ClassNotFoundException e) {
-            regionHelper = new RegionHelper();
-        }
+        regionHelper = new RegionHelper();
 
         try {
             Class.forName("net.minecraft.server.v1_8_R3.EnumParticle");
@@ -207,16 +202,18 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
                     final ClipboardHolder holder = session.getClipboard();
                     final Clipboard clipboard = holder.getClipboard();
                     final Location location = player.getLocation();
-                    final SimpleVector origin = regionHelper.getOrigin(clipboard);
+                    final Vector origin = clipboard.getOrigin();
 
                     // Transform the clipboard if necessary
                     final Transform transform = holder.getTransform();
                     final Region region = transform.isIdentity() ? clipboard.getRegion() : regionHelper.transformAndReShift(holder, clipboard.getRegion());
 
                     // Shift the transformed region relative to the player
-                    final Region shiftedRegion = regionHelper.shift(region,
-                            location.getBlockX() - origin.getX(), location.getBlockY() - origin.getY(), location.getBlockZ() - origin.getZ());
-                    drawManager.getDrawer(SelectionType.CUBOID).draw(player, shiftedRegion, true);
+                    try {
+                        region.shift(new Vector(location.getBlockX() - origin.getX(), location.getBlockY() - origin.getY(), location.getBlockZ() - origin.getZ()));
+                    } catch (final RegionOperationException ignored) {
+                    }
+                    drawManager.getDrawer(SelectionType.CUBOID).draw(player, region, true);
                 } catch (final EmptyClipboardException ignored) {
                     // Ignore if there's no clipboard
                 }
@@ -248,14 +245,14 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
 
     private void drawSelection(final Player player, final User user, final Region region, final SelectionType selectionType) {
         if (settings.cacheLocations()) {
-            final SimpleVector minimumPoint = regionHelper.getMinimumPoint(region);
-            final SimpleVector maximumPoint = regionHelper.getMaximumPoint(region);
+            final Vector minimumPoint = region.getMinimumPoint();
+            final Vector maximumPoint = region.getMaximumPoint();
             SelectionCache cache = user.getSelectionCache();
             if (cache != null) {
                 if (selectionType == cache.getSelectionType()
                         && cache.getMinimum().equals(minimumPoint) && cache.getMaximum().equals(maximumPoint)) {
                     final Location location = new Location(player.getWorld(), 0, 0, 0);
-                    for (final SimpleVector vector : cache.getVectors()) {
+                    for (final Vector vector : cache.getVectors()) {
                         location.setX(vector.getX());
                         location.setY(vector.getY());
                         location.setZ(vector.getZ());
@@ -306,7 +303,7 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
         return newestVersion;
     }
 
-    public IRegionHelper getRegionHelper() {
+    public RegionHelper getRegionHelper() {
         return regionHelper;
     }
 

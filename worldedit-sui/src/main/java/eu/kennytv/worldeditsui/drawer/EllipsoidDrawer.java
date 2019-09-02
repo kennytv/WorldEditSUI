@@ -18,10 +18,10 @@
 
 package eu.kennytv.worldeditsui.drawer;
 
+import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.regions.EllipsoidRegion;
 import com.sk89q.worldedit.regions.Region;
 import eu.kennytv.worldeditsui.WorldEditSUIPlugin;
-import eu.kennytv.worldeditsui.compat.SimpleVector;
 import eu.kennytv.worldeditsui.drawer.base.DrawerBase;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -34,13 +34,16 @@ public final class EllipsoidDrawer extends DrawerBase {
 
     @Override
     public void draw(final Player player, final Region region) {
-        final SimpleVector radius = plugin.getRegionHelper().getRadius((EllipsoidRegion) region, 1.5, 1.4, 1.5);
+        final EllipsoidRegion ellipsoid = (EllipsoidRegion) region;
+        Vector radius = ellipsoid.getRadius();
+        radius = new Vector(radius.getX() + 1.5, radius.getY() + 1.4, radius.getZ() + 1.5);
         final int width = (int) radius.getX();
         final int length = (int) radius.getZ();
         final int height = (int) radius.getY();
         final int max = Math.max(length, width);
 
-        final SimpleVector center = plugin.getRegionHelper().getCenter(region, 0.5, 0.5, 0.5);
+        Vector center = region.getCenter();
+        center = new Vector(center.getX() + 0.5, center.getY() + 0.5, center.getZ() + 0.5);
         final Location location = new Location(player.getWorld(), center.getX(), center.getY(), center.getZ());
         final double heightInterval = Math.PI / (settings.getParticlesPerBlock() * height);
         final double wideInterval = Math.PI / (settings.getParticlesPerBlock() * max / 10D);

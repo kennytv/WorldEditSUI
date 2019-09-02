@@ -32,6 +32,12 @@ advanced-grid:
   # The recommended amount is between 2 and 3. Can be set from 2 to 5.
   particles-per-block: 2
 
+advanced-clipboard-grid:
+  # You can also enable the grid for the clipboard view.
+  # Same as advanced-grid settings, but for the clipboard.
+  enabled: false
+  particles-per-block: 2
+
 particle-expiry:
   # If enabled and a selection isn't changed for the given amount of seconds, particles will stop being sent for it
   enabled: false
@@ -43,9 +49,9 @@ particle-expiry:
 # Else, only players with the set permission will have particles for their selection.
 permission: "none"
 
-# If enabled, the particles will be sent to all players, rather than just to the player having the WorldEdit selection.
-# Might be useful when building as a group.
 send-particles-to-all:
+  # If enabled, the particles will be sent to all players, rather than just to the player having the WorldEdit selection.
+  # Might be useful when building as a group.
   enabled: false
   # You can also limit those seeing the particles by a permission. Leave 'none' to let all players see them.
   # Warning: If you have a (bad) perm plugin that does not cache its checks / takes a while for permission checks, leave this at 'none'.

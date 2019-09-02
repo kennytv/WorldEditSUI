@@ -37,18 +37,15 @@ public final class Settings {
 
     private String permission;
     private String otherParticlesPermission;
-    private String wandItem;
+    private String wandItem; // optional value, exists for fallback/legacy reasons
     private double particleSpace;
-    private double particleGridSpace;
     private int particlesPerBlock;
-    private int particlesPerGridBlock;
     private int particleSendInterval;
     private int particleViewDistance;
     private long expiresAfterMillis;
     private boolean cacheLocations;
     private boolean expiryEnabled;
     private boolean expireMessage;
-    private boolean advancedGrid;
     private boolean updateChecks;
     private boolean sendParticlesToAll;
     private boolean persistentToggles;
@@ -58,6 +55,8 @@ public final class Settings {
     private ViaParticle clipboardParticle;
     private ViaParticle othersParticle;
     private ViaParticle othersClipboardParticle;
+    private GridSettings advancedGrid;
+    private GridSettings advancedClipboardGrid;
 
     Settings(final WorldEditSUIPlugin plugin) {
         this.plugin = plugin;
@@ -94,18 +93,12 @@ public final class Settings {
             this.particleSpace = 1D / particlesPerBlock;
         }
 
-        advancedGrid = config.getBoolean("advanced-grid.enabled", false);
-        if (advancedGrid) {
-            particlesPerGridBlock = config.getInt("advanced-grid.particles-per-block", 2);
-            if (particlesPerGridBlock < 1 || particlesPerGridBlock > 5) {
-                plugin.getLogger().warning("The value advanced-grid.particles-per-block has to be set between 2 and 5!");
-                plugin.getLogger().warning("Switched to default advanced-grid.particles-per-block: 2");
-                particlesPerGridBlock = 2;
-                particleGridSpace = 0.5;
-            } else {
-                particleGridSpace = 1D / particlesPerGridBlock;
-            }
-        }
+        final ConfigurationSection gridSection = config.getConfigurationSection("advanced-grid");
+        advancedGrid = gridSection.getBoolean("enabled", false) ? new GridSettings(plugin, gridSection) : null;
+
+        final ConfigurationSection clipboardGridSection = config.getConfigurationSection("advanced-clipboard-grid");
+        advancedClipboardGrid = clipboardGridSection != null && clipboardGridSection.getBoolean("enabled", false) ?
+                new GridSettings(plugin, clipboardGridSection) : null;
 
         particleSendInterval = config.getInt("particle-send-interval", 12);
         if (particleSendInterval < 5 || particleSendInterval > 200) {
@@ -226,24 +219,53 @@ public final class Settings {
         return permission;
     }
 
+    // getter is unused since the perm is directly given to the particle helper class
     public String getOtherParticlesPermission() {
         return otherParticlesPermission;
+    }
+
+    public boolean hasAdvancedGrid() {
+        return advancedGrid != null;
+    }
+
+    public boolean hasAdvancedGrid(final boolean clipboardSelection) {
+        return clipboardSelection ? advancedClipboardGrid != null : advancedGrid != null;
+    }
+
+    /**
+     * @see #hasAdvancedGrid()
+     */
+    public double getParticleGridSpace() {
+        return advancedGrid.getParticleGridSpace();
+    }
+
+    /**
+     * @see #hasAdvancedGrid(boolean)
+     */
+    public double getParticleGridSpace(final boolean clipboardSelection) {
+        return clipboardSelection ? advancedClipboardGrid.getParticleGridSpace() : advancedGrid.getParticleGridSpace();
+    }
+
+    /**
+     * @see #hasAdvancedGrid()
+     */
+    public int getParticlesPerGridBlock() {
+        return advancedGrid.getParticlesPerGridBlock();
+    }
+
+    /**
+     * @see #hasAdvancedGrid(boolean)
+     */
+    public int getParticlesPerGridBlock(final boolean clipboardSelection) {
+        return clipboardSelection ? advancedClipboardGrid.getParticlesPerGridBlock() : advancedGrid.getParticlesPerGridBlock();
     }
 
     public double getParticleSpace() {
         return particleSpace;
     }
 
-    public double getParticleGridSpace() {
-        return particleGridSpace;
-    }
-
     public int getParticlesPerBlock() {
         return particlesPerBlock;
-    }
-
-    public int getParticlesPerGridBlock() {
-        return particlesPerGridBlock;
     }
 
     public int getParticleSendInterval() {
@@ -264,10 +286,6 @@ public final class Settings {
 
     public boolean hasExpireMessage() {
         return expireMessage;
-    }
-
-    public boolean hasAdvancedGrid() {
-        return advancedGrid;
     }
 
     public boolean hasUpdateChecks() {
@@ -316,5 +334,32 @@ public final class Settings {
 
     public YamlConfiguration getUserData() {
         return userData;
+    }
+
+    public static final class GridSettings {
+
+        private final int particlesPerGridBlock;
+        private final double particleGridSpace;
+
+        private GridSettings(final WorldEditSUIPlugin plugin, final ConfigurationSection section) {
+            final int particlesPerGridBlock = section.getInt("particles-per-block", 2);
+            if (particlesPerGridBlock < 1 || particlesPerGridBlock > 5) {
+                plugin.getLogger().warning("The value particles-per-block in " + section.getCurrentPath() + " has to be set between 2 and 5!");
+                plugin.getLogger().warning("Switched to default particles-per-block: 2");
+                this.particlesPerGridBlock = 2;
+                particleGridSpace = 0.5;
+            } else {
+                this.particlesPerGridBlock = particlesPerGridBlock;
+                particleGridSpace = 1D / this.particlesPerGridBlock;
+            }
+        }
+
+        public int getParticlesPerGridBlock() {
+            return particlesPerGridBlock;
+        }
+
+        public double getParticleGridSpace() {
+            return particleGridSpace;
+        }
     }
 }

@@ -38,7 +38,6 @@ import eu.kennytv.worldeditsui.listener.PlayerJoinListener;
 import eu.kennytv.worldeditsui.listener.PlayerQuitListener;
 import eu.kennytv.worldeditsui.listener.WESelectionListener;
 import eu.kennytv.worldeditsui.metrics.MetricsLite;
-import eu.kennytv.worldeditsui.nms.ParticleHelper;
 import eu.kennytv.worldeditsui.user.SelectionCache;
 import eu.kennytv.worldeditsui.user.User;
 import eu.kennytv.worldeditsui.user.UserManager;
@@ -82,20 +81,25 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
         } catch (final ClassNotFoundException e) {
             regionHelper = new RegionHelper();
         }
+
         try {
-            Class.forName("org.bukkit.Particle");
-            particleHelper = new ParticleHelper();
-        } catch (final ClassNotFoundException e) {
+            Class.forName("net.minecraft.server.v1_8_R3.EnumParticle");
+            particleHelper = new eu.kennytv.worldeditsui.compat.nms.v1_8_R3.ParticleHelper();
+        } catch (ClassNotFoundException ex) {
             try {
-                Class.forName("net.minecraft.server.v1_8_R3.EnumParticle");
-            } catch (ClassNotFoundException ex) {
+                Class.forName("org.bukkit.Particle");
+                getLogger().severe("This version of the plugin only supports Minecraft versions from 1.8.4-1.8.9.");
+                getLogger().severe("If you want 1.9+ support, use the version provided on the plugin's Spigot page (or the default version found on the GitHub Releases page).");
+                getServer().getPluginManager().disablePlugin(this);
+                return;
+            } catch (final ClassNotFoundException e) {
                 // If you want to support lower versions  than 1.8(.4), feel free to add a new ParticleHelperModule ¯\_(ツ)_/¯
-                getLogger().severe("Sorry - this plugin only supports Minecraft versions from 1.8.4 upwards.");
+                getLogger().severe("Sorry - this plugin only supports Minecraft versions from 1.8.4-1.8.9.");
+                getLogger().severe("If you want to support versions lower than 1.8.4, feel free to ask me on the support Discord guild or to pr support yourself.");
+                getLogger().severe("If you want 1.9+ support, use the version provided on the plugin's Spigot page (or the default version found on the GitHub Releases page).");
                 getServer().getPluginManager().disablePlugin(this);
                 return;
             }
-
-            particleHelper = new eu.kennytv.worldeditsui.compat.nms.v1_8_R3.ParticleHelper();
         }
 
         settings = new Settings(this);

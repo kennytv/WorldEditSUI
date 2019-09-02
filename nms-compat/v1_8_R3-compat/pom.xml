@@ -6,7 +6,7 @@
     <parent>
         <groupId>eu.kennytv.worldeditsui</groupId>
         <artifactId>nms-compat</artifactId>
-        <version>1.6</version>
+        <version>1.6.1</version>
     </parent>
 
     <artifactId>v1_8_R3-compat</artifactId>

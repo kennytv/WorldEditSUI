@@ -76,18 +76,19 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
         printEnableMessage();
 
         try {
+            Class.forName("org.bukkit.Particle");
+        } catch (final ClassNotFoundException e) {
+            // See the 1.8-support branch for 1.8 support
+            getLogger().severe("Sorry - this plugin only supports Minecraft versions from 1.9 upwards.");
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+
+        try {
             Class.forName("com.sk89q.worldedit.math.Vector2");
             regionHelper = new eu.kennytv.worldeditsui.compat.we7.RegionHelper();
         } catch (final ClassNotFoundException e) {
             regionHelper = new RegionHelper();
-        }
-        try {
-            Class.forName("org.bukkit.Particle");
-        } catch (final ClassNotFoundException e) {
-            // See the master branch for 1.8 support
-            getLogger().severe("Sorry - this plugin only supports Minecraft versions from 1.9 upwards.");
-            getServer().getPluginManager().disablePlugin(this);
-            return;
         }
 
         particleHelper = new ParticleHelper();

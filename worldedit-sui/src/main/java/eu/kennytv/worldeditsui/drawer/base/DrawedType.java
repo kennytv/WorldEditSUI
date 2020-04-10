@@ -16,23 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package eu.kennytv.worldeditsui.listener;
+package eu.kennytv.worldeditsui.drawer.base;
 
-import eu.kennytv.worldeditsui.user.UserManager;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerQuitEvent;
+public enum DrawedType {
 
-public final class PlayerQuitListener implements Listener {
-
-    private final UserManager userManager;
-
-    public PlayerQuitListener(final UserManager userManager) {
-        this.userManager = userManager;
-    }
-
-    @EventHandler
-    public void playerQuit(final PlayerQuitEvent event) {
-        userManager.deleteUser(event.getPlayer());
-    }
+    SELECTED,
+    CLIPBOARD,
+    WG_REGION
 }

@@ -1,6 +1,6 @@
 /*
  * WorldEditSUI - https://git.io/wesui
- * Copyright (C) 2018 KennyTV (https://github.com/KennyTV)
+ * Copyright (C) 2018-2020 KennyTV (https://github.com/KennyTV)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@ import com.sk89q.worldedit.regions.FlatRegion;
 import com.sk89q.worldedit.regions.Region;
 import eu.kennytv.worldeditsui.WorldEditSUIPlugin;
 import eu.kennytv.worldeditsui.compat.SimpleVector;
+import eu.kennytv.worldeditsui.drawer.base.DrawedType;
 import eu.kennytv.worldeditsui.drawer.base.DrawerBase;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -34,7 +35,7 @@ public final class CylinderDrawer extends DrawerBase {
     }
 
     @Override
-    public void draw(final Player player, final Region region) {
+    public void draw(final Player player, final Region region, final DrawedType drawedType) {
         final SimpleVector radius = plugin.getRegionHelper().getRadius((CylinderRegion) region, 1.3, 1.3);
         final int width = (int) radius.getX();
         final int length = (int) radius.getZ();
@@ -51,46 +52,68 @@ public final class CylinderDrawer extends DrawerBase {
         location.setY(top);
         drawCurves(player, width, length, 1, location, wideGrid, heightSpace == 0 ? 1 : heightSpace);
 
-        if (settings.hasAdvancedGrid()) {
+        if (settings.hasAdvancedGrid(drawedType)) {
             location.setY(bottom);
-            final double wideInterval = Math.PI / (settings.getParticlesPerGridBlock() * max / 10D);
-            drawCurves(player, width, length, height * settings.getParticlesPerGridBlock(), location, wideInterval, settings.getParticleGridSpace());
-            drawGrid(player, width, length, top, location, true);
-            drawGrid(player, length, width, top, location, false);
+            final double wideInterval = Math.PI / (settings.getParticlesPerGridBlock(drawedType) * max / 10D);
+            drawCurves(player, width, length, height * settings.getParticlesPerGridBlock(drawedType), location, wideInterval, settings.getParticleGridSpace(drawedType));
+            drawGrid(player, drawedType, width, length, top, location, true);
+            drawGrid(player, drawedType, length, width, top, location, false);
         }
     }
 
-    private void drawGrid(final Player player, final int width, final int length, final int top, final Location location, final boolean xAxis) {
+    private void drawGrid(final Player player, final DrawedType drawedType, final int width, final int length, final int top, final Location location, final boolean xAxis) {
         final double x = location.getX();
         final double z = location.getZ();
         final double bottom = location.getY();
         final int gap = settings.getParticlesPerBlock() * (((width * length) / AREA_FACTOR) + 1);
         final int ticks = 2 * (width - 1) / gap;
-        if (xAxis) location.setX(location.getX() - width);
-        else location.setZ(location.getZ() - width);
+        if (xAxis) {
+            location.setX(location.getX() - width);
+        } else {
+            location.setZ(location.getZ() - width);
+        }
 
         for (int i = 0; i < ticks; i++) {
-            if (xAxis) location.setX(location.getX() + gap);
-            else location.setZ(location.getZ() + gap);
+            if (xAxis) {
+                location.setX(location.getX() + gap);
+            } else {
+                location.setZ(location.getZ() + gap);
+            }
+
             final double delta = Math.abs(xAxis ? location.getX() - x : location.getZ() - z);
             // Thanks to a beautiful buddy of mine that took an our of his life to come up with this formula by himself, even though it's on Wikipedia 👀
             final double radius = ((double) length / width) * Math.sqrt((width * width) - (delta * delta));
-            final int gridTicks = (int) (radius * settings.getParticlesPerGridBlock() * 2);
-            if (xAxis) location.setZ(location.getZ() - radius);
-            else location.setX(location.getX() - radius);
+            final int gridTicks = (int) (radius * settings.getParticlesPerGridBlock(drawedType) * 2);
+            if (xAxis) {
+                location.setZ(location.getZ() - radius);
+            } else {
+                location.setX(location.getX() - radius);
+            }
+
             for (int j = 0; j < gridTicks; j++) {
-                if (xAxis) location.setZ(location.getZ() + settings.getParticleGridSpace());
-                else location.setX(location.getX() + settings.getParticleGridSpace());
+                if (xAxis) {
+                    location.setZ(location.getZ() + settings.getParticleGridSpace(drawedType));
+                } else {
+                    location.setX(location.getX() + settings.getParticleGridSpace(drawedType));
+                }
                 playEffect(location, player);
                 location.setY(top);
                 playEffect(location, player);
                 location.setY(bottom);
             }
-            if (xAxis) location.setZ(z);
-            else location.setX(x);
+
+            if (xAxis) {
+                location.setZ(z);
+            } else {
+                location.setX(x);
+            }
         }
-        if (xAxis) location.setX(x);
-        else location.setZ(z);
+
+        if (xAxis) {
+            location.setX(x);
+        } else {
+            location.setZ(z);
+        }
     }
 
     private void drawCurves(final Player player, final int width, final int length, final int ticks, final Location location, final double wideGrid, final double heightSpace) {

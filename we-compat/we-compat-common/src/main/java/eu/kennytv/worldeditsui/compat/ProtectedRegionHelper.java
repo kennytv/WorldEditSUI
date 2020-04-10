@@ -16,23 +16,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package eu.kennytv.worldeditsui.listener;
+package eu.kennytv.worldeditsui.compat;
 
-import eu.kennytv.worldeditsui.user.UserManager;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.World;
+import org.jetbrains.annotations.Nullable;
 
-public final class PlayerQuitListener implements Listener {
+import java.util.Set;
 
-    private final UserManager userManager;
+public interface ProtectedRegionHelper {
 
-    public PlayerQuitListener(final UserManager userManager) {
-        this.userManager = userManager;
-    }
+    @Nullable
+    ProtectedRegionWrapper getRegion(World world, String regionName);
 
-    @EventHandler
-    public void playerQuit(final PlayerQuitEvent event) {
-        userManager.deleteUser(event.getPlayer());
-    }
+    Set<String> getRegionNames(World world);
 }

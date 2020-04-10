@@ -1,6 +1,6 @@
 /*
  * WorldEditSUI - https://git.io/wesui
- * Copyright (C) 2018 KennyTV (https://github.com/KennyTV)
+ * Copyright (C) 2018-2020 KennyTV (https://github.com/KennyTV)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,10 +20,20 @@ package eu.kennytv.worldeditsui.drawer.base;
 
 import com.sk89q.worldedit.regions.Region;
 import org.bukkit.entity.Player;
-
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 public interface Drawer {
+
+    /**
+     * Recreates the given with particles.
+     * If the given player object is null, the particles
+     * will be sent to all players nearby.
+     *
+     * @param player     player to send the particles to, may be null when sent to all players
+     * @param region     region to be displayed with particles
+     * @param drawedType drawed type
+     */
+    void draw(@Nullable Player player, Region region, DrawedType drawedType);
 
     /**
      * Recreates the given with particles.
@@ -33,21 +43,7 @@ public interface Drawer {
      * @param player player to send the particles to, may be null when sent to all players
      * @param region region to be displayed with particles
      */
-    void draw(@Nullable Player player, Region region);
-
-    /**
-     * Recreates the given with particles.
-     * If the given player object is null, the particles
-     * will be sent to all players nearby.
-     *
-     * @param player        player to send the particles to, may be null when sent to all players
-     * @param region        region to be displayed with particles
-     * @param copySelection if the region is a copied region
-     * @see #draw(Player, Region)
-     * @deprecated only implemented by the CuboidDrawer
-     */
-    @Deprecated
-    default void draw(@Nullable final Player player, final Region region, final boolean copySelection) {
-        this.draw(player, region);
+    default void draw(@Nullable final Player player, final Region region) {
+        draw(player, region, DrawedType.SELECTED);
     }
 }

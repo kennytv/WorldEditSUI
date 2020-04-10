@@ -1,6 +1,6 @@
 /*
- * WorldEditCUI - https://git.io/wecui
- * Copyright (C) 2018 KennyTV (https://github.com/KennyTV)
+ * WorldEditSUI - https://git.io/wesui
+ * Copyright (C) 2018-2020 KennyTV (https://github.com/KennyTV)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,13 +25,14 @@ import org.bukkit.Particle;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.material.MaterialData;
+import org.jetbrains.annotations.Nullable;
 
 public final class ParticleData {
 
     private final Particle particle;
     private final Object data;
 
-    public ParticleData(final Particle particle, final Object data) {
+    public ParticleData(final Particle particle, @Nullable final Object data) {
         this.particle = particle;
         this.data = data;
     }
@@ -40,6 +41,7 @@ public final class ParticleData {
         return particle;
     }
 
+    @Nullable
     public Object getData() {
         return data;
     }

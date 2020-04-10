@@ -1,6 +1,6 @@
 /*
  * WorldEditSUI - https://git.io/wesui
- * Copyright (C) 2018 KennyTV (https://github.com/KennyTV)
+ * Copyright (C) 2018-2020 KennyTV (https://github.com/KennyTV)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,10 +29,17 @@ import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.regions.RegionSelector;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import eu.kennytv.worldeditsui.command.WESUICommand;
-import eu.kennytv.worldeditsui.compat.IRegionHelper;
+import eu.kennytv.worldeditsui.compat.ProtectedRegionHelper;
+import eu.kennytv.worldeditsui.compat.ProtectedRegionWrapper;
+import eu.kennytv.worldeditsui.compat.RegionHelper;
+import eu.kennytv.worldeditsui.compat.SelectionType;
 import eu.kennytv.worldeditsui.compat.SimpleVector;
-import eu.kennytv.worldeditsui.compat.we6.RegionHelper;
+import eu.kennytv.worldeditsui.compat.we6.ProtectedRegionHelper6;
+import eu.kennytv.worldeditsui.compat.we6.RegionHelper6;
+import eu.kennytv.worldeditsui.compat.we7.ProtectedRegionHelper7;
+import eu.kennytv.worldeditsui.compat.we7.RegionHelper7;
 import eu.kennytv.worldeditsui.drawer.DrawManager;
+import eu.kennytv.worldeditsui.drawer.base.DrawedType;
 import eu.kennytv.worldeditsui.listener.PlayerJoinListener;
 import eu.kennytv.worldeditsui.listener.PlayerQuitListener;
 import eu.kennytv.worldeditsui.listener.WESelectionListener;
@@ -41,12 +48,13 @@ import eu.kennytv.worldeditsui.user.SelectionCache;
 import eu.kennytv.worldeditsui.user.User;
 import eu.kennytv.worldeditsui.user.UserManager;
 import eu.kennytv.worldeditsui.util.ParticleHelper;
-import eu.kennytv.worldeditsui.util.SelectionType;
 import eu.kennytv.worldeditsui.util.Version;
 import org.bukkit.Location;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -59,7 +67,8 @@ import java.net.URL;
 public final class WorldEditSUIPlugin extends JavaPlugin {
 
     private static final String PREFIX = "§8[§eWorldEditSUI§8] ";
-    private IRegionHelper regionHelper;
+    private RegionHelper regionHelper;
+    private ProtectedRegionHelper protectedRegionHelper;
     private ParticleHelper particleHelper;
     private UserManager userManager;
     private Settings settings;
@@ -69,6 +78,7 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
     private Version newestVersion;
     private int expiryTask = -1;
     private int persistentTogglesTask = -1;
+    private boolean worldGuardEnabled;
 
     @Override
     public void onEnable() {
@@ -78,20 +88,20 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
         try {
             Class.forName("org.bukkit.Particle");
         } catch (final ClassNotFoundException e) {
-            // See the 1.8-support branch for 1.8 support
-            getLogger().severe("Sorry - this plugin only supports Minecraft versions from 1.9 upwards.");
+            getLogger().severe("This plugin only supports Minecraft versions from 1.9 upwards.");
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
 
+        boolean isWorldEdit7 = true;
         try {
             Class.forName("com.sk89q.worldedit.math.Vector2");
-            regionHelper = new eu.kennytv.worldeditsui.compat.we7.RegionHelper();
         } catch (final ClassNotFoundException e) {
-            regionHelper = new RegionHelper();
+            isWorldEdit7 = false;
         }
 
-        particleHelper = new ParticleHelper();
+        regionHelper = isWorldEdit7 ? new RegionHelper7() : new RegionHelper6();
+        particleHelper = new ParticleHelper(settings);
 
         settings = new Settings(this);
         userManager = new UserManager(settings);
@@ -99,6 +109,10 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
 
         final PluginManager pm = getServer().getPluginManager();
         worldEditPlugin = ((WorldEditPlugin) pm.getPlugin("WorldEdit"));
+        worldGuardEnabled = pm.isPluginEnabled("WorldGuard");
+        if (worldGuardEnabled) {
+            protectedRegionHelper = isWorldEdit7 ? new ProtectedRegionHelper7() : new ProtectedRegionHelper6();
+        }
 
         // Imagine someone using the server reload command 👀
         getServer().getOnlinePlayers().forEach(p -> userManager.createUser(p));
@@ -106,7 +120,10 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
         pm.registerEvents(new PlayerJoinListener(this), this);
         pm.registerEvents(new PlayerQuitListener(userManager), this);
         pm.registerEvents(new WESelectionListener(this), this);
-        getCommand("worldeditsui").setExecutor(new WESUICommand(this));
+
+        final PluginCommand command = getCommand("worldeditsui");
+        command.setExecutor(new WESUICommand(this));
+        command.setPermissionMessage(settings.getMessage("noPermission"));
 
         // Start tasks
         getServer().getScheduler().runTaskTimerAsynchronously(this, this::updateSelections, settings.getParticleSendInterval(), settings.getParticleSendInterval());
@@ -117,6 +134,8 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (settings == null) return; // if instantly disabled
+
         settings.saveData();
         getServer().getOnlinePlayers().forEach(player -> userManager.deleteUser(player));
     }
@@ -156,15 +175,20 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
         // Start tasks if not already running, or cancel them if one is running but now disabled in the config
         if (expiryTask == -1 && settings.isExpiryEnabled()) {
             expiryTask = getServer().getScheduler().runTaskTimer(this, () -> {
-                userManager.getExpireTimestamps().entrySet().removeIf(entry -> {
-                    final boolean remove = entry.getValue() < System.currentTimeMillis();
-                    if (remove && settings.hasExpireMessage()) {
-                        getServer().getPlayer(entry.getKey()).sendMessage(settings.getMessage("idled"));
+                for (final User user : userManager.getUsers().values()) {
+                    if (user.getExpireTimestamp() == 0) continue;
+                    if (user.getExpireTimestamp() > System.currentTimeMillis()) continue;
+
+                    user.setExpireTimestamp(0);
+                    if (settings.hasExpireMessage()) {
+                        getServer().getPlayer(user.getUuid()).sendMessage(settings.getMessage("idled"));
                     }
-                    return remove;
-                });
+                }
             }, 20, 20).getTaskId();
         } else if (expiryTask != -1 && !settings.isExpiryEnabled()) {
+            for (final User user : userManager.getUsers().values()) {
+                user.setExpireTimestamp(-1);
+            }
             getServer().getScheduler().cancelTask(expiryTask);
             expiryTask = -1;
         }
@@ -184,13 +208,21 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
 
             final User user = userManager.getUser(player);
             if (user == null) continue;
+            // Check for sending restrictions
             if (!user.isSelectionShown() && !user.isClipboardShown()) continue;
-            if (settings.isExpiryEnabled() && !userManager.getExpireTimestamps().containsKey(player.getUniqueId()))
+            if (settings.isExpiryEnabled() && user.getExpireTimestamp() == 0)
                 continue;
             if (settings.getPermission() != null && !player.hasPermission(settings.getPermission())) continue;
+            if (settings.getMaxPing() != 0 && player.spigot().getPing() > settings.getMaxPing()) continue;
 
             final LocalSession session = worldEditPlugin.getSession(player);
             final RegionSelector selector = session.getRegionSelector(new BukkitWorld(player.getWorld()));
+
+            // Selected WorldGuard region
+            final ProtectedRegionWrapper selectedWGRegion = user.getSelectedWGRegion();
+            if (selectedWGRegion != null) {
+                drawSelection(player, user, selectedWGRegion.getRegion(), selectedWGRegion.getSelectionType(), DrawedType.WG_REGION);
+            }
 
             // Clipboard
             if (user.isClipboardShown()) {
@@ -207,7 +239,7 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
                     // Shift the transformed region relative to the player
                     final Region shiftedRegion = regionHelper.shift(region,
                             location.getBlockX() - origin.getX(), location.getBlockY() - origin.getY(), location.getBlockZ() - origin.getZ());
-                    drawManager.getDrawer(SelectionType.CUBOID).draw(player, shiftedRegion, true);
+                    drawManager.getDrawer(SelectionType.CUBOID).draw(player, shiftedRegion, DrawedType.CLIPBOARD);
                 } catch (final EmptyClipboardException ignored) {
                     // Ignore if there's no clipboard
                 }
@@ -221,27 +253,24 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
                 } catch (final IncompleteRegionException ignored) {
                     // Clear cache if present
                     if (settings.cacheLocations()) {
-                        final SelectionCache cache = user.getSelectionCache();
-                        if (cache != null) {
-                            cache.getVectors().clear();
-                            user.setSelectionCache(null);
-                        }
+                        user.clearCache(DrawedType.SELECTED);
                     }
                     continue;
                 }
 
                 final SelectionType selectionType = SelectionType.fromKey(selector.getTypeName());
-                if (selectionType != null)
-                    drawSelection(player, user, region, selectionType);
+                if (selectionType != null) {
+                    drawSelection(player, user, region, selectionType, DrawedType.SELECTED);
+                }
             }
         }
     }
 
-    private void drawSelection(final Player player, final User user, final Region region, final SelectionType selectionType) {
+    private void drawSelection(final Player player, final User user, final Region region, final SelectionType selectionType, final DrawedType drawedType) {
         if (settings.cacheLocations()) {
             final SimpleVector minimumPoint = regionHelper.getMinimumPoint(region);
             final SimpleVector maximumPoint = regionHelper.getMaximumPoint(region);
-            SelectionCache cache = user.getSelectionCache();
+            SelectionCache cache = user.getSelectionCache(drawedType);
             if (cache != null) {
                 if (selectionType == cache.getSelectionType()
                         && cache.getMinimum().equals(minimumPoint) && cache.getMaximum().equals(maximumPoint)) {
@@ -250,17 +279,18 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
                         location.setX(vector.getX());
                         location.setY(vector.getY());
                         location.setZ(vector.getZ());
-                        if (settings.sendParticlesToAll()) {
-                            particleHelper.playEffectToAll(settings.getParticle(), settings.getOthersParticle(), location, 0, 1, settings.getParticleViewDistance(), player);
+                        if (settings.sendParticlesToAll(drawedType)) {
+                            particleHelper.playEffectToAll(settings.getParticle(drawedType), settings.getOthersParticle(drawedType),
+                                    location, settings.getParticleViewDistance(), player);
                         } else {
-                            particleHelper.playEffect(settings.getParticle(), location, 0, 1, settings.getParticleViewDistance(), player);
+                            particleHelper.playEffect(settings.getParticle(drawedType), location, settings.getParticleViewDistance(), player);
                         }
                     }
                     return;
                 }
             } else {
                 cache = new SelectionCache();
-                user.setSelectionCache(cache);
+                user.setSelectionCache(drawedType, cache);
             }
 
             // If there's a new region, reset the cache and recalculate vectors
@@ -270,11 +300,16 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
             cache.getVectors().clear();
         }
 
-        drawManager.getDrawer(selectionType).draw(player, region);
+        // Current selection
+        drawManager.getDrawer(selectionType).draw(player, region, drawedType);
     }
 
     public WorldEditPlugin getWorldEditPlugin() {
         return worldEditPlugin;
+    }
+
+    public DrawManager getDrawManager() {
+        return drawManager;
     }
 
     public UserManager getUserManager() {
@@ -297,11 +332,20 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
         return newestVersion;
     }
 
-    public IRegionHelper getRegionHelper() {
+    public RegionHelper getRegionHelper() {
         return regionHelper;
+    }
+
+    @Nullable
+    public ProtectedRegionHelper getProtectedRegionHelper() {
+        return protectedRegionHelper;
     }
 
     public ParticleHelper getParticleHelper() {
         return particleHelper;
+    }
+
+    public boolean isWorldGuardEnabled() {
+        return worldGuardEnabled;
     }
 }

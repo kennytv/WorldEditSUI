@@ -1,6 +1,6 @@
 /*
  * WorldEditSUI - https://git.io/wesui
- * Copyright (C) 2018 KennyTV (https://github.com/KennyTV)
+ * Copyright (C) 2018-2020 KennyTV (https://github.com/KennyTV)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@ package eu.kennytv.worldeditsui.drawer.base;
 import eu.kennytv.worldeditsui.Settings;
 import eu.kennytv.worldeditsui.WorldEditSUIPlugin;
 import eu.kennytv.worldeditsui.compat.SimpleVector;
+import eu.kennytv.worldeditsui.user.SelectionCache;
 import eu.kennytv.worldeditsui.user.User;
 import eu.kennytv.worldeditsui.util.ParticleData;
 import org.bukkit.Location;
@@ -38,22 +39,24 @@ public abstract class DrawerBase implements Drawer {
     }
 
     protected void playEffect(final Location location, final Player player) {
-        playEffect(location, player, false);
+        playEffect(location, player, DrawedType.SELECTED);
     }
 
-    protected void playEffect(final Location location, final Player player, final boolean copySelection) {
-        if (settings.cacheLocations() && !copySelection) {
+    protected void playEffect(final Location location, final Player player, final DrawedType drawedType) {
+        if (settings.cacheLocations() && drawedType != DrawedType.CLIPBOARD) {
             final User user = plugin.getUserManager().getUser(player);
             if (user == null) return;
-            user.getSelectionCache().getVectors().add(new SimpleVector(location.getX(), location.getY(), location.getZ()));
+
+            final SelectionCache cache = user.getSelectionCache(drawedType);
+            cache.getVectors().add(new SimpleVector(location.getX(), location.getY(), location.getZ()));
         }
 
-        final ParticleData particle = copySelection ? settings.getClipboardParticle() : settings.getParticle();
-        if (settings.sendParticlesToAll()) {
-            final ParticleData othersParticle = copySelection ? settings.getOthersClipboardParticle() : settings.getOthersParticle();
-            plugin.getParticleHelper().playEffectToAll(particle, othersParticle, location, 0, 1, settings.getParticleViewDistance(), player);
+        final ParticleData particle = settings.getParticle(drawedType);
+        if (settings.sendParticlesToAll(drawedType)) {
+            final ParticleData othersParticle = settings.getOthersParticle(drawedType);
+            plugin.getParticleHelper().playEffectToAll(particle, othersParticle, location, settings.getParticleViewDistance(), player);
         } else {
-            plugin.getParticleHelper().playEffect(particle, location, 0, 1, settings.getParticleViewDistance(), player);
+            plugin.getParticleHelper().playEffect(particle, location, settings.getParticleViewDistance(), player);
         }
     }
 }

@@ -1,6 +1,6 @@
 /*
- * WorldEditCUI - https://git.io/wecui
- * Copyright (C) 2018 KennyTV (https://github.com/KennyTV)
+ * WorldEditSUI - https://git.io/wesui
+ * Copyright (C) 2018-2020 KennyTV (https://github.com/KennyTV)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,35 +18,37 @@
 
 package eu.kennytv.worldeditsui.util;
 
+import eu.kennytv.worldeditsui.Settings;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 public final class ParticleHelper {
 
-    /**
-     * Only players with this permission can see another player's particles.
-     */
-    private String permission;
+    private final Settings settings;
 
-    public void playEffect(final ParticleData particle, final Location location, final float speed, final int amount, final int radius, final Player player) {
-        playEffect(particle, location, 0, 0, 0, speed, amount, radius, player);
+    public ParticleHelper(final Settings settings) {
+        this.settings = settings;
     }
 
-    public void playEffect(final ParticleData particle, final Location location, final float offX, final float offY, final float offZ, final float speed, final int amount, final int radius, final Player player) {
+    public void playEffect(final ParticleData particle, final Location location, final int radius, final Player player) {
+        playEffect(particle, location, 0, 0, 0, radius, player);
+    }
+
+    public void playEffect(final ParticleData particle, final Location location, final float offX, final float offY, final float offZ, final int radius, final Player player) {
         if (!location.getWorld().equals(player.getWorld())) return;
 
         final int radiusSquared = radius * radius;
         if (player.getLocation().distanceSquared(location) > radiusSquared) return;
 
-        player.spawnParticle(particle.getParticle(), location, amount, offX, offY, offZ, speed, particle.getData());
+        player.spawnParticle(particle.getParticle(), location, 1, offX, offY, offZ, 0, particle.getData());
     }
 
-    public void playEffectToAll(final ParticleData particle, final ParticleData othersParticle, final Location location, final float speed, final int amount, final int radius, final Player origin) {
-        playEffectToAll(particle, othersParticle, location, 0, 0, 0, speed, amount, radius, origin);
+    public void playEffectToAll(final ParticleData particle, final ParticleData othersParticle, final Location location, final int radius, final Player origin) {
+        playEffectToAll(particle, othersParticle, location, 0, 0, 0, radius, origin);
     }
 
-    public void playEffectToAll(final ParticleData particle, final ParticleData othersParticle, final Location location, final float offX, final float offY, final float offZ, final float speed, final int amount, final int radius, final Player origin) {
+    public void playEffectToAll(final ParticleData particle, final ParticleData othersParticle, final Location location, final float offX, final float offY, final float offZ, final int radius, final Player origin) {
         final int radiusSquared = radius * radius;
         for (final Player player : Bukkit.getOnlinePlayers()) {
             if (!location.getWorld().equals(player.getWorld())
@@ -56,15 +58,11 @@ public final class ParticleHelper {
             if (!originalPlayer && !canSeeOtherParticles(player)) continue;
 
             final ParticleData toSend = originalPlayer ? particle : othersParticle;
-            player.spawnParticle(toSend.getParticle(), location, amount, offX, offY, offZ, speed, toSend.getData());
+            player.spawnParticle(toSend.getParticle(), location, 1, offX, offY, offZ, 0, toSend.getData());
         }
     }
 
-    public void setPermission(final String permission) {
-        this.permission = permission;
-    }
-
     private boolean canSeeOtherParticles(final Player player) {
-        return permission == null || player.hasPermission(permission);
+        return settings.getOtherParticlesPermission() == null || player.hasPermission(settings.getOtherParticlesPermission());
     }
 }

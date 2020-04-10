@@ -1,6 +1,6 @@
 /*
  * WorldEditSUI - https://git.io/wesui
- * Copyright (C) 2018 KennyTV (https://github.com/KennyTV)
+ * Copyright (C) 2018-2020 KennyTV (https://github.com/KennyTV)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,11 +28,14 @@ import java.util.UUID;
 public final class UserManager {
 
     private final Map<UUID, User> users = new HashMap<>();
-    private final Map<UUID, Long> expireTimestamps = new HashMap<>();
     private final Settings settings;
 
     public UserManager(final Settings settings) {
         this.settings = settings;
+    }
+
+    public User getUser(final UUID uuid) {
+        return users.get(uuid);
     }
 
     public User getUser(final Player player) {
@@ -50,22 +53,15 @@ public final class UserManager {
             selection = settings.showByDefault();
             clipboard = settings.showClipboardByDefault();
         }
-        users.put(player.getUniqueId(), new User(selection, clipboard));
+        users.put(player.getUniqueId(), new User(player.getUniqueId(), selection, clipboard));
     }
 
     public void deleteUser(final Player player) {
-        expireTimestamps.remove(player.getUniqueId());
-        final User remove = users.remove(player.getUniqueId());
-        final SelectionCache cache = remove.getSelectionCache();
-        if (cache != null)
-            cache.getVectors().clear();
+        final User removedUser = users.remove(player.getUniqueId());
+        removedUser.clearCaches();
     }
 
     public Map<UUID, User> getUsers() {
         return users;
-    }
-
-    public Map<UUID, Long> getExpireTimestamps() {
-        return expireTimestamps;
     }
 }

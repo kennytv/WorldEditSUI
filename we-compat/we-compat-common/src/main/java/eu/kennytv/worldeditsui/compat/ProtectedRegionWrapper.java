@@ -16,23 +16,25 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package eu.kennytv.worldeditsui.listener;
+package eu.kennytv.worldeditsui.compat;
 
-import eu.kennytv.worldeditsui.user.UserManager;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerQuitEvent;
+import com.sk89q.worldedit.regions.Region;
 
-public final class PlayerQuitListener implements Listener {
+public final class ProtectedRegionWrapper {
 
-    private final UserManager userManager;
+    private final Region region;
+    private final SelectionType selectionType;
 
-    public PlayerQuitListener(final UserManager userManager) {
-        this.userManager = userManager;
+    public ProtectedRegionWrapper(final Region region, final SelectionType selectionType) {
+        this.region = region;
+        this.selectionType = selectionType;
     }
 
-    @EventHandler
-    public void playerQuit(final PlayerQuitEvent event) {
-        userManager.deleteUser(event.getPlayer());
+    public Region getRegion() {
+        return region;
+    }
+
+    public SelectionType getSelectionType() {
+        return selectionType;
     }
 }

@@ -6,7 +6,7 @@
     <parent>
         <groupId>eu.kennytv.worldeditsui</groupId>
         <artifactId>worldedit-sui-parent</artifactId>
-        <version>1.6.1</version>
+        <version>1.7</version>
     </parent>
 
     <artifactId>worldedit-sui</artifactId>

@@ -1,6 +1,6 @@
 /*
  * WorldEditSUI - https://git.io/wesui
- * Copyright (C) 2018 KennyTV (https://github.com/KennyTV)
+ * Copyright (C) 2018-2020 KennyTV (https://github.com/KennyTV)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
 
 package eu.kennytv.worldeditsui.drawer;
 
-import eu.kennytv.worldeditsui.util.SelectionType;
+import eu.kennytv.worldeditsui.compat.SelectionType;
 import eu.kennytv.worldeditsui.WorldEditSUIPlugin;
 import eu.kennytv.worldeditsui.drawer.base.Drawer;
 
@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public final class DrawManager {
+
     private final Map<SelectionType, Drawer> drawers = new HashMap<>();
 
     public DrawManager(final WorldEditSUIPlugin plugin) {

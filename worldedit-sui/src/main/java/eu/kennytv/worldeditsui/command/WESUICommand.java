@@ -1,6 +1,6 @@
 /*
  * WorldEditSUI - https://git.io/wesui
- * Copyright (C) 2018 KennyTV (https://github.com/KennyTV)
+ * Copyright (C) 2018-2020 KennyTV (https://github.com/KennyTV)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,17 +20,21 @@ package eu.kennytv.worldeditsui.command;
 
 import eu.kennytv.worldeditsui.Settings;
 import eu.kennytv.worldeditsui.WorldEditSUIPlugin;
-import eu.kennytv.worldeditsui.user.SelectionCache;
+import eu.kennytv.worldeditsui.compat.ProtectedRegionWrapper;
+import eu.kennytv.worldeditsui.drawer.base.DrawedType;
 import eu.kennytv.worldeditsui.user.User;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
+import org.bukkit.util.StringUtil;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 public final class WESUICommand implements CommandExecutor, TabCompleter {
 
@@ -43,55 +47,95 @@ public final class WESUICommand implements CommandExecutor, TabCompleter {
     }
 
     @Override
-    public boolean onCommand(final CommandSender sender, final Command cmd, final String s, final String[] args) {
-        if (checkPermission(sender, "command")) return true;
+    public boolean onCommand(@NotNull final CommandSender sender, @NotNull final Command cmd, @NotNull final String s, @NotNull final String[] args) {
         if (args.length == 1) {
-            if (args[0].equalsIgnoreCase("toggle")) {
-                if (!(sender instanceof Player)) return true;
-                if (checkPermission(sender, "command.toggle")) return true;
+            final String arg = args[0].toLowerCase();
+            switch (arg) {
+                case "toggle": {
+                    if (!(sender instanceof Player)) return true;
+                    if (checkPermission(sender, "command.toggle")) return true;
 
-                final Player player = (Player) sender;
-                final User user = plugin.getUserManager().getUser(player);
-                if (user.isSelectionShown()) {
-                    player.sendMessage(getMessage("particlesHidden"));
-                    user.setSelectionShown(false);
-
-                    final SelectionCache cache = user.getSelectionCache();
-                    if (cache != null) {
-                        cache.getVectors().clear();
-                        user.setSelectionCache(null);
+                    final Player player = (Player) sender;
+                    final User user = plugin.getUserManager().getUser(player);
+                    if (user.isSelectionShown()) {
+                        player.sendMessage(getMessage("particlesHidden"));
+                        user.setSelectionShown(false);
+                        user.clearCaches();
+                    } else {
+                        player.sendMessage(getMessage("particlesShown"));
+                        user.setSelectionShown(true);
                     }
-                } else {
-                    player.sendMessage(getMessage("particlesShown"));
-                    user.setSelectionShown(true);
-                }
 
-                if (settings.hasPersistentToggles()) {
-                    settings.setUserData("selection." + player.getUniqueId(), user.isSelectionShown());
+                    if (settings.hasPersistentToggles()) {
+                        settings.setUserData("selection." + player.getUniqueId(), user.isSelectionShown());
+                    }
+                    break;
                 }
-            } else if (args[0].equalsIgnoreCase("toggleclipboard")) {
-                if (!(sender instanceof Player)) return true;
-                if (checkPermission(sender, "command.toggleclipboard")) return true;
+                case "toggleclipboard": {
+                    if (!(sender instanceof Player)) return true;
+                    if (checkPermission(sender, "command.toggleclipboard")) return true;
 
-                final Player player = (Player) sender;
-                final User user = plugin.getUserManager().getUser(player);
-                player.sendMessage(user.isClipboardShown() ? getMessage("clipboardHidden") : getMessage("clipboardShown"));
-                user.setClipboardShown(!user.isClipboardShown());
-                if (settings.hasPersistentToggles()) {
-                    settings.setUserData("clipboard." + player.getUniqueId(), user.isClipboardShown());
+                    final Player player = (Player) sender;
+                    final User user = plugin.getUserManager().getUser(player);
+                    player.sendMessage(user.isClipboardShown() ? getMessage("clipboardHidden") : getMessage("clipboardShown"));
+                    user.setClipboardShown(!user.isClipboardShown());
+                    if (settings.hasPersistentToggles()) {
+                        settings.setUserData("clipboard." + player.getUniqueId(), user.isClipboardShown());
+                    }
+                    break;
                 }
-            } else if (args[0].equalsIgnoreCase("reload")) {
-                if (checkPermission(sender, "command.reload")) return true;
+                case "reload":
+                    if (checkPermission(sender, "command.reload")) return true;
 
-                final boolean cache = settings.cacheLocations();
-                settings.loadSettings();
-                settings.loadLanguageFile();
-                // Empty cache to recalculate positions
-                plugin.getUserManager().getUsers().values().forEach(user -> user.setSelectionCache(null));
-                plugin.checkTasks();
-                sender.sendMessage(getMessage("reload"));
-            } else
-                sendHelp(sender);
+                    settings.loadSettings();
+                    settings.loadLanguageFile();
+                    // Empty cache to recalculate positions
+                    plugin.getUserManager().getUsers().values().forEach(User::clearCaches);
+                    plugin.checkTasks();
+                    sender.sendMessage(getMessage("reload"));
+                    // Reset Bukkit's no perm message for the command
+                    plugin.getCommand("worldeditsui").setPermissionMessage(settings.getMessage("noPermission"));
+                    break;
+                case "showregion": {
+                    if (!(sender instanceof Player)) return true;
+                    if (checkPermission(sender, "command.showregion")) return true;
+
+                    final Player player = (Player) sender;
+                    final User user = plugin.getUserManager().getUser(player);
+                    if (user.getSelectedWGRegion() == null) {
+                        sendHelp(sender);
+                        return true;
+                    }
+
+                    user.setSelectedWGRegion(null);
+                    user.clearCache(DrawedType.WG_REGION);
+                    user.setExpireTimestamp(System.currentTimeMillis() + plugin.getSettings().getExpiresAfterMillis());
+                    sender.sendMessage(getMessage("regionCleared"));
+                    break;
+                }
+                default:
+                    sendHelp(sender);
+                    break;
+            }
+        } else if (args.length == 2 && args[0].equalsIgnoreCase("showregion")) {
+            if (!(sender instanceof Player)) return true;
+            if (checkPermission(sender, "command.showregion")) return true;
+            if (!plugin.isWorldGuardEnabled()) {
+                sender.sendMessage(getMessage("WGNotEnabled"));
+                return true;
+            }
+
+            final Player player = (Player) sender;
+            final ProtectedRegionWrapper region = plugin.getProtectedRegionHelper().getRegion(player.getWorld(), args[1]);
+            if (region == null) {
+                sender.sendMessage(getMessage("regionNotFound"));
+                return true;
+            }
+
+            final User user = plugin.getUserManager().getUser(player);
+            user.clearCache(DrawedType.WG_REGION);
+            user.setSelectedWGRegion(region);
+            player.sendMessage(getMessage("regionDisplayed"));
         } else
             sendHelp(sender);
         return true;
@@ -106,6 +150,8 @@ public final class WESUICommand implements CommandExecutor, TabCompleter {
             sender.sendMessage(getMessage("helpToggle"));
         if (sender.hasPermission("wesui.command.toggleclipboard"))
             sender.sendMessage(getMessage("helpToggleClipboard"));
+        if (plugin.isWorldGuardEnabled() && sender.hasPermission("wesui.command.showregion"))
+            sender.sendMessage(getMessage("helpShowRegion"));
         sender.sendMessage("§8× §eVersion " + plugin.getVersion() + " §7by §bKennyTV");
         sender.sendMessage(getMessage("helpHeader"));
         sender.sendMessage("");
@@ -120,21 +166,33 @@ public final class WESUICommand implements CommandExecutor, TabCompleter {
     }
 
     @Override
-    public List<String> onTabComplete(final CommandSender sender, final Command cmd, final String s, final String[] args) {
-        if (args.length != 1 || !sender.hasPermission("wesui.command")) return Collections.emptyList();
-
-        final String arg = args[0].toLowerCase();
-        final List<String> list = new ArrayList<>();
-        checkString(sender, arg, "reload", list);
-        checkString(sender, arg, "toggle", list);
-        checkString(sender, arg, "toggleclipboard", list);
-        return list;
+    public List<String> onTabComplete(@NotNull final CommandSender sender, @NotNull final Command cmd, @NotNull final String s, @NotNull final String[] args) {
+        if (!sender.hasPermission("wesui.command")) return Collections.emptyList();
+        if (args.length == 1) {
+            final String arg = args[0].toLowerCase();
+            final List<String> list = new ArrayList<>();
+            checkString(sender, arg, "reload", list);
+            checkString(sender, arg, "toggle", list);
+            checkString(sender, arg, "toggleclipboard", list);
+            if (plugin.isWorldGuardEnabled()) {
+                checkString(sender, arg, "showregion", list);
+            }
+            return list;
+        } else if (args.length == 2) {
+            if (sender instanceof Player && plugin.isWorldGuardEnabled()
+                    && args[0].equalsIgnoreCase("showregion") && sender.hasPermission("wesui.showregion")) {
+                final Set<String> regionNames = plugin.getProtectedRegionHelper().getRegionNames(((Player) sender).getWorld());
+                return StringUtil.copyPartialMatches(args[1], regionNames, new ArrayList<>());
+            }
+        }
+        return Collections.emptyList();
     }
 
     private void checkString(final CommandSender sender, final String s, final String command, final List<String> list) {
         if (!s.isEmpty() && !command.startsWith(s)) return;
-        if (sender.hasPermission("wesui.command." + command))
+        if (sender.hasPermission("wesui.command." + command)) {
             list.add(command);
+        }
     }
 
     private String getMessage(final String path) {

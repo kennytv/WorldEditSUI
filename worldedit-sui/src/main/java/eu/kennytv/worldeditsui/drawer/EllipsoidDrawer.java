@@ -1,6 +1,6 @@
 /*
  * WorldEditSUI - https://git.io/wesui
- * Copyright (C) 2018 KennyTV (https://github.com/KennyTV)
+ * Copyright (C) 2018-2020 KennyTV (https://github.com/KennyTV)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@ import com.sk89q.worldedit.regions.EllipsoidRegion;
 import com.sk89q.worldedit.regions.Region;
 import eu.kennytv.worldeditsui.WorldEditSUIPlugin;
 import eu.kennytv.worldeditsui.compat.SimpleVector;
+import eu.kennytv.worldeditsui.drawer.base.DrawedType;
 import eu.kennytv.worldeditsui.drawer.base.DrawerBase;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -33,7 +34,7 @@ public final class EllipsoidDrawer extends DrawerBase {
     }
 
     @Override
-    public void draw(final Player player, final Region region) {
+    public void draw(final Player player, final Region region, final DrawedType drawedType) {
         final SimpleVector radius = plugin.getRegionHelper().getRadius((EllipsoidRegion) region, 1.5, 1.4, 1.5);
         final int width = (int) radius.getX();
         final int length = (int) radius.getZ();
@@ -46,9 +47,9 @@ public final class EllipsoidDrawer extends DrawerBase {
         final double wideInterval = Math.PI / (settings.getParticlesPerBlock() * max / 10D);
         showGrid(player, width, length, height, location, wideInterval, heightInterval);
 
-        if (settings.hasAdvancedGrid()) {
-            final double heightGrid = Math.PI / (settings.getParticlesPerGridBlock() * height);
-            final double wideGrid = Math.PI / (settings.getParticlesPerGridBlock() * max / 5D);
+        if (settings.hasAdvancedGrid(drawedType)) {
+            final double heightGrid = Math.PI / (settings.getParticlesPerGridBlock(drawedType) * height);
+            final double wideGrid = Math.PI / (settings.getParticlesPerGridBlock(drawedType) * max / 5D);
             showGrid(player, width, length, height, location, heightGrid, wideGrid);
         }
     }

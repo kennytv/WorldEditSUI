@@ -1,6 +1,6 @@
 /*
  * WorldEditSUI - https://git.io/wesui
- * Copyright (C) 2018 KennyTV (https://github.com/KennyTV)
+ * Copyright (C) 2018-2020 KennyTV (https://github.com/KennyTV)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@ import com.sk89q.worldedit.regions.Polygonal2DRegion;
 import com.sk89q.worldedit.regions.Region;
 import eu.kennytv.worldeditsui.WorldEditSUIPlugin;
 import eu.kennytv.worldeditsui.compat.Simple2DVector;
+import eu.kennytv.worldeditsui.drawer.base.DrawedType;
 import eu.kennytv.worldeditsui.drawer.base.DrawerBase;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -34,7 +35,7 @@ public final class PolygonalDrawer extends DrawerBase {
     }
 
     @Override
-    public void draw(final Player player, final Region region) {
+    public void draw(final Player player, final Region region, final DrawedType drawedType) {
         final Polygonal2DRegion polyRegion = (Polygonal2DRegion) region;
         final Simple2DVector[] points = plugin.getRegionHelper().getPoints(polyRegion);
         Simple2DVector last = points[0];

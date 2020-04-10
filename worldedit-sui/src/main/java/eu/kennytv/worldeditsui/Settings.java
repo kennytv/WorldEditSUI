@@ -1,6 +1,6 @@
 /*
  * WorldEditSUI - https://git.io/wesui
- * Copyright (C) 2018 KennyTV (https://github.com/KennyTV)
+ * Copyright (C) 2018-2020 KennyTV (https://github.com/KennyTV)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,13 +18,21 @@
 
 package eu.kennytv.worldeditsui;
 
+import eu.kennytv.worldeditsui.drawer.base.DrawedType;
 import eu.kennytv.worldeditsui.util.ParticleData;
 import org.bukkit.ChatColor;
 import org.bukkit.Particle;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
+import org.jetbrains.annotations.Nullable;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
@@ -44,6 +52,7 @@ public final class Settings {
     private int particleSendInterval;
     private int particleViewDistance;
     private long expiresAfterMillis;
+    private int maxPing;
     private boolean cacheLocations;
     private boolean expiryEnabled;
     private boolean expireMessage;
@@ -56,8 +65,10 @@ public final class Settings {
     private ParticleData clipboardParticle;
     private ParticleData othersParticle;
     private ParticleData othersClipboardParticle;
+    private ParticleData wgRegionParticle;
     private GridSettings advancedGrid;
     private GridSettings advancedClipboardGrid;
+    private GridSettings advancedWGRegionGrid;
 
     Settings(final WorldEditSUIPlugin plugin) {
         this.plugin = plugin;
@@ -73,6 +84,17 @@ public final class Settings {
 
         particle = loadParticle(config, "particle", Particle.FLAME);
         clipboardParticle = loadParticle(config, "clipboard-particle", Particle.VILLAGER_HAPPY);
+        wgRegionParticle = loadParticle(config, "wg-region-particle", Particle.VILLAGER_HAPPY);
+
+        try {
+            maxPing = Math.max(config.getInt("max-ping"), 0);
+            Player.Spigot.class.getDeclaredMethod("getPing");
+        } catch (final NoSuchMethodException ignored) {
+            if (maxPing != 0) {
+                plugin.getLogger().warning("The max-ping option only works on servers running Paper!");
+                maxPing = 0;
+            }
+        }
 
         final ConfigurationSection sendToAllSection = config.getConfigurationSection("send-particles-to-all");
         sendParticlesToAll = sendToAllSection.getBoolean("enabled");
@@ -80,7 +102,7 @@ public final class Settings {
         if (otherParticlesPermission.isEmpty() || otherParticlesPermission.equalsIgnoreCase("none")) {
             otherParticlesPermission = null;
         }
-        plugin.getParticleHelper().setPermission(otherParticlesPermission);
+
         othersParticle = loadParticle(sendToAllSection, "others-particle", Particle.FLAME);
         othersClipboardParticle = loadParticle(sendToAllSection, "others-clipboard-particle", Particle.VILLAGER_HAPPY);
 
@@ -100,6 +122,10 @@ public final class Settings {
         final ConfigurationSection clipboardGridSection = config.getConfigurationSection("advanced-clipboard-grid");
         advancedClipboardGrid = clipboardGridSection != null && clipboardGridSection.getBoolean("enabled", false) ?
                 new GridSettings(plugin, clipboardGridSection) : null;
+
+        final ConfigurationSection wgRegionGridSection = config.getConfigurationSection("advanced-wg-region-grid");
+        advancedWGRegionGrid = wgRegionGridSection != null && wgRegionGridSection.getBoolean("enabled", false) ?
+                new GridSettings(plugin, wgRegionGridSection) : null;
 
         particleSendInterval = config.getInt("particle-send-interval", 12);
         if (particleSendInterval < 5 || particleSendInterval > 200) {
@@ -218,8 +244,10 @@ public final class Settings {
             plugin.getLogger().warning("The language file is missing the following string: " + path);
             return "empty";
         }
-        if (s.contains("%prefix%"))
+
+        if (s.contains("%prefix%")) {
             s = s.replace("%prefix%", language.getString("prefix", ""));
+        }
         return ChatColor.translateAlternateColorCodes('&', s);
     }
 
@@ -227,45 +255,40 @@ public final class Settings {
         return permission;
     }
 
-    // getter is unused since the perm is directly given to the particle helper class
     public String getOtherParticlesPermission() {
         return otherParticlesPermission;
     }
 
-    public boolean hasAdvancedGrid() {
-        return advancedGrid != null;
+    @Nullable
+    public GridSettings getGridSettings(final DrawedType drawedType) {
+        switch (drawedType) {
+            case SELECTED:
+                return advancedGrid;
+            case CLIPBOARD:
+                return advancedClipboardGrid;
+            case WG_REGION:
+                return advancedWGRegionGrid;
+            default:
+                throw new IllegalArgumentException();
+        }
     }
 
-    public boolean hasAdvancedGrid(final boolean clipboardSelection) {
-        return clipboardSelection ? advancedClipboardGrid != null : advancedGrid != null;
-    }
-
-    /**
-     * @see #hasAdvancedGrid()
-     */
-    public double getParticleGridSpace() {
-        return advancedGrid.getParticleGridSpace();
-    }
-
-    /**
-     * @see #hasAdvancedGrid(boolean)
-     */
-    public double getParticleGridSpace(final boolean clipboardSelection) {
-        return clipboardSelection ? advancedClipboardGrid.getParticleGridSpace() : advancedGrid.getParticleGridSpace();
+    public boolean hasAdvancedGrid(final DrawedType drawedType) {
+        return getGridSettings(drawedType) != null;
     }
 
     /**
-     * @see #hasAdvancedGrid()
+     * @see #hasAdvancedGrid(DrawedType)
      */
-    public int getParticlesPerGridBlock() {
-        return advancedGrid.getParticlesPerGridBlock();
+    public double getParticleGridSpace(final DrawedType drawedType) {
+        return getGridSettings(drawedType).getParticleGridSpace();
     }
 
     /**
-     * @see #hasAdvancedGrid(boolean)
+     * @see #hasAdvancedGrid(DrawedType)
      */
-    public int getParticlesPerGridBlock(final boolean clipboardSelection) {
-        return clipboardSelection ? advancedClipboardGrid.getParticlesPerGridBlock() : advancedGrid.getParticlesPerGridBlock();
+    public int getParticlesPerGridBlock(final DrawedType drawedType) {
+        return getGridSettings(drawedType).getParticlesPerGridBlock();
     }
 
     public double getParticleSpace() {
@@ -288,6 +311,10 @@ public final class Settings {
         return expiresAfterMillis;
     }
 
+    public int getMaxPing() {
+        return maxPing;
+    }
+
     public boolean isExpiryEnabled() {
         return expiryEnabled;
     }
@@ -300,8 +327,8 @@ public final class Settings {
         return updateChecks;
     }
 
-    public boolean sendParticlesToAll() {
-        return sendParticlesToAll;
+    public boolean sendParticlesToAll(final DrawedType drawedType) {
+        return sendParticlesToAll && (drawedType == DrawedType.SELECTED || drawedType == DrawedType.CLIPBOARD);
     }
 
     public boolean hasPersistentToggles() {
@@ -320,20 +347,27 @@ public final class Settings {
         return cacheLocations;
     }
 
-    public ParticleData getParticle() {
-        return particle;
+    public ParticleData getParticle(final DrawedType drawedType) {
+        switch (drawedType) {
+            default:
+            case SELECTED:
+                return particle;
+            case CLIPBOARD:
+                return clipboardParticle;
+            case WG_REGION:
+                return wgRegionParticle;
+        }
     }
 
-    public ParticleData getClipboardParticle() {
-        return clipboardParticle;
-    }
-
-    public ParticleData getOthersParticle() {
-        return othersParticle;
-    }
-
-    public ParticleData getOthersClipboardParticle() {
-        return othersClipboardParticle;
+    public ParticleData getOthersParticle(final DrawedType drawedType) {
+        switch (drawedType) {
+            case SELECTED:
+                return othersParticle;
+            case CLIPBOARD:
+                return othersClipboardParticle;
+            default:
+                throw new IllegalArgumentException();
+        }
     }
 
     public String getWandItem() {

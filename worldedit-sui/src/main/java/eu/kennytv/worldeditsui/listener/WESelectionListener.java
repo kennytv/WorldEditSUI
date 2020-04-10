@@ -1,6 +1,6 @@
 /*
  * WorldEditSUI - https://git.io/wesui
- * Copyright (C) 2018 KennyTV (https://github.com/KennyTV)
+ * Copyright (C) 2018-2020 KennyTV (https://github.com/KennyTV)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,6 +31,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.Set;
+import java.util.UUID;
 
 public final class WESelectionListener implements Listener {
 
@@ -78,7 +79,8 @@ public final class WESelectionListener implements Listener {
             final String type = item.getType().name();
             if (!type.endsWith("_AXE") || !type.contains("WOOD")) return;
         }
-        plugin.getUserManager().getExpireTimestamps().put(player.getUniqueId(), System.currentTimeMillis() + plugin.getSettings().getExpiresAfterMillis());
+
+        plugin.getUserManager().getUser(player).setExpireTimestamp(System.currentTimeMillis() + plugin.getSettings().getExpiresAfterMillis());
     }
 
     @Subscribe
@@ -89,10 +91,13 @@ public final class WESelectionListener implements Listener {
         while (!arguments.isEmpty() && arguments.charAt(0) == '/') {
             arguments = arguments.substring(1);
         }
+
         if (arguments.isEmpty()) return;
 
         final String command = arguments.split(" ", 2)[0].toLowerCase();
         if (weCommands.stream().noneMatch(command::equals)) return;
-        plugin.getUserManager().getExpireTimestamps().put(event.getActor().getUniqueId(), System.currentTimeMillis() + plugin.getSettings().getExpiresAfterMillis());
+
+        final UUID uuid = event.getActor().getUniqueId();
+        plugin.getUserManager().getUser(uuid).setExpireTimestamp(System.currentTimeMillis() + plugin.getSettings().getExpiresAfterMillis());
     }
 }

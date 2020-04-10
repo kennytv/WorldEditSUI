@@ -1,6 +1,6 @@
 /*
  * WorldEditSUI - https://git.io/wesui
- * Copyright (C) 2018 KennyTV (https://github.com/KennyTV)
+ * Copyright (C) 2018-2020 KennyTV (https://github.com/KennyTV)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,6 +17,8 @@
  */
 
 package eu.kennytv.worldeditsui.util;
+
+import org.jetbrains.annotations.NotNull;
 
 public final class Version implements Comparable<Version> {
 
@@ -53,7 +55,7 @@ public final class Version implements Comparable<Version> {
      * @return 0 if they are the same, 1 if this instance is newer, -1 if older
      */
     @Override
-    public int compareTo(final Version version) {
+    public int compareTo(@NotNull final Version version) {
         if (version == null || version.toString() == null) return 0;
         final int max = Math.max(this.parts.length, version.parts.length);
         for (int i = 0; i < max; i++) {

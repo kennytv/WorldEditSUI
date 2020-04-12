@@ -6,11 +6,19 @@
     <parent>
         <groupId>eu.kennytv.worldeditsui</groupId>
         <artifactId>worldedit-sui-parent</artifactId>
-        <version>1.7</version>
+        <version>1.7.1</version>
     </parent>
 
     <artifactId>worldedit-sui</artifactId>
     <name>WorldEditSUI</name>
+    <url>https://github.com/KennyTV/WorldEditSUI</url>
+
+    <developers>
+        <developer>
+            <id>KennyTV</id>
+            <url>https://github.com/KennyTV/</url>
+        </developer>
+    </developers>
 
     <dependencies>
         <dependency>

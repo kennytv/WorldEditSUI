@@ -36,6 +36,8 @@ public final class CylinderDrawer extends DrawerBase {
 
     @Override
     public void draw(final Player player, final Region region, final DrawedType drawedType) {
+        if (!hasValidSize(player, region)) return;
+
         final SimpleVector radius = plugin.getRegionHelper().getRadius((CylinderRegion) region, 1.3, 1.3);
         final int width = (int) radius.getX();
         final int length = (int) radius.getZ();
@@ -65,7 +67,7 @@ public final class CylinderDrawer extends DrawerBase {
         final double x = location.getX();
         final double z = location.getZ();
         final double bottom = location.getY();
-        final int gap = settings.getParticlesPerBlock() * (((width * length) / AREA_FACTOR) + 1);
+        final int gap = checkSpace(settings.getParticlesPerBlock() * (((width * length) / AREA_FACTOR) + 1));
         final int ticks = 2 * (width - 1) / gap;
         if (xAxis) {
             location.setX(location.getX() - width);

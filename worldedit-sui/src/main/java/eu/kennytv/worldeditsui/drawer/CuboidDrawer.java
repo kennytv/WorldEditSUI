@@ -35,6 +35,8 @@ public final class CuboidDrawer extends DrawerBase {
 
     @Override
     public void draw(final Player player, final Region region, final DrawedType drawedType) {
+        if (!hasValidSize(player, region)) return;
+
         final double width = region.getWidth();
         final double length = region.getLength();
         final double height = region.getHeight();
@@ -50,9 +52,9 @@ public final class CuboidDrawer extends DrawerBase {
         int gridSpaceZ = 0;
         int topGridSpace = 0;
         if (settings.hasAdvancedGrid(drawedType)) {
-            gridSpaceX = settings.getParticlesPerBlock() * ((int) ((width * height) / AREA_FACTOR) + 1);
-            gridSpaceZ = settings.getParticlesPerBlock() * ((int) ((length * height) / AREA_FACTOR) + 1);
-            topGridSpace = settings.getParticlesPerBlock() * ((int) ((width * length) / AREA_FACTOR) + 1);
+            gridSpaceX = settings.getParticlesPerBlock() * checkSpace(((int) ((width * height) / AREA_FACTOR) + 1));
+            gridSpaceZ = settings.getParticlesPerBlock() * checkSpace(((int) ((length * height) / AREA_FACTOR) + 1));
+            topGridSpace = settings.getParticlesPerBlock() * checkSpace(((int) ((width * length) / AREA_FACTOR) + 1));
             maxGridTicks = height * settings.getParticlesPerGridBlock(drawedType) - 1;
             maxTopGridTicksX = length * settings.getParticlesPerGridBlock(drawedType) - 1;
             maxTopGridTicksZ = width * settings.getParticlesPerGridBlock(drawedType) - 1;

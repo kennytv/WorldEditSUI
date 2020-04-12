@@ -18,8 +18,8 @@
 
 package eu.kennytv.worldeditsui.drawer;
 
-import eu.kennytv.worldeditsui.compat.SelectionType;
 import eu.kennytv.worldeditsui.WorldEditSUIPlugin;
+import eu.kennytv.worldeditsui.compat.SelectionType;
 import eu.kennytv.worldeditsui.drawer.base.Drawer;
 
 import java.util.HashMap;

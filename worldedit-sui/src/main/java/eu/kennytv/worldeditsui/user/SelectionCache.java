@@ -18,8 +18,8 @@
 
 package eu.kennytv.worldeditsui.user;
 
-import eu.kennytv.worldeditsui.compat.SimpleVector;
 import eu.kennytv.worldeditsui.compat.SelectionType;
+import eu.kennytv.worldeditsui.compat.SimpleVector;
 
 import java.util.ArrayList;
 import java.util.List;

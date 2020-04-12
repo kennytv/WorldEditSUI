@@ -36,6 +36,8 @@ public final class PolygonalDrawer extends DrawerBase {
 
     @Override
     public void draw(final Player player, final Region region, final DrawedType drawedType) {
+        if (!hasValidSize(player, region)) return;
+
         final Polygonal2DRegion polyRegion = (Polygonal2DRegion) region;
         final Simple2DVector[] points = plugin.getRegionHelper().getPoints(polyRegion);
         Simple2DVector last = points[0];

@@ -32,6 +32,13 @@ particle-send-interval: 12
 # Set this to -1 to disable.
 max-ping: 150
 
+# Selecting giant areas may result in a high cpu usage or server lag.
+# This limits the maximum number of blocks that can be displayed (default is 10 million, ~250*150*250 blocks).
+# You could still go even higher if they can only be used by trusted people.
+max-selection-size-to-display: 10_000_000
+# If set to true, players with the 'wesui.maxselectionsize.bypass' permission ignore the limit from above.
+enable-max-selection-bypass-perm: true
+
 advanced-grid:
   # If enabled, the selection will not only be displayed by the outline,
   # but also with a grid between the outlines (the bigger the selection, the bigger the grid).

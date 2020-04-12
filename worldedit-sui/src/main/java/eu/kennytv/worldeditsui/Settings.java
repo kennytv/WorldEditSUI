@@ -52,7 +52,9 @@ public final class Settings {
     private int particleSendInterval;
     private int particleViewDistance;
     private long expiresAfterMillis;
+    private long maxSelectionSizeToDisplay;
     private int maxPing;
+    private boolean useMaxSelectionSizeBypassPerm;
     private boolean cacheLocations;
     private boolean expiryEnabled;
     private boolean expireMessage;
@@ -170,6 +172,9 @@ public final class Settings {
                 expiresAfterMillis *= 1000;
             }
         }
+
+        maxSelectionSizeToDisplay = Math.max(config.getLong("max-selection-size-to-display"), 0);
+        useMaxSelectionSizeBypassPerm = config.getBoolean("enable-max-selection-bypass-perm", true);
 
         if (persistentToggles) {
             final File file = new File(plugin.getDataFolder(), "userdata.yml");
@@ -313,6 +318,14 @@ public final class Settings {
 
     public int getMaxPing() {
         return maxPing;
+    }
+
+    public long getMaxSelectionSizeToDisplay() {
+        return maxSelectionSizeToDisplay;
+    }
+
+    public boolean useMaxSelectionSizeBypassPerm() {
+        return useMaxSelectionSizeBypassPerm;
     }
 
     public boolean isExpiryEnabled() {

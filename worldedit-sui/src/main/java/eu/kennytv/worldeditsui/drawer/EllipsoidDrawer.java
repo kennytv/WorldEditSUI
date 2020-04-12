@@ -35,6 +35,8 @@ public final class EllipsoidDrawer extends DrawerBase {
 
     @Override
     public void draw(final Player player, final Region region, final DrawedType drawedType) {
+        if (!hasValidSize(player, region)) return;
+
         final SimpleVector radius = plugin.getRegionHelper().getRadius((EllipsoidRegion) region, 1.5, 1.4, 1.5);
         final int width = (int) radius.getX();
         final int length = (int) radius.getZ();

@@ -20,7 +20,6 @@ package eu.kennytv.worldeditsui.drawer.base;
 
 import com.sk89q.worldedit.regions.Region;
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.Nullable;
 
 public interface Drawer {
 
@@ -33,7 +32,7 @@ public interface Drawer {
      * @param region     region to be displayed with particles
      * @param drawedType drawed type
      */
-    void draw(@Nullable Player player, Region region, DrawedType drawedType);
+    void draw(Player player, Region region, DrawedType drawedType);
 
     /**
      * Recreates the given with particles.
@@ -43,7 +42,7 @@ public interface Drawer {
      * @param player player to send the particles to, may be null when sent to all players
      * @param region region to be displayed with particles
      */
-    default void draw(@Nullable final Player player, final Region region) {
+    default void draw(final Player player, final Region region) {
         draw(player, region, DrawedType.SELECTED);
     }
 }

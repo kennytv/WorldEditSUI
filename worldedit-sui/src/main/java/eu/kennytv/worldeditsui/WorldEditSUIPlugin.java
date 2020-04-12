@@ -101,9 +101,10 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
         }
 
         regionHelper = isWorldEdit7 ? new RegionHelper7() : new RegionHelper6();
-        particleHelper = new ParticleHelper(settings);
 
         settings = new Settings(this);
+
+        particleHelper = new ParticleHelper(settings);
         userManager = new UserManager(settings);
         drawManager = new DrawManager(this);
 

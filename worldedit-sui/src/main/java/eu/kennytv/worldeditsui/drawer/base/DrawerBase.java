@@ -18,6 +18,7 @@
 
 package eu.kennytv.worldeditsui.drawer.base;
 
+import com.sk89q.worldedit.regions.Region;
 import eu.kennytv.worldeditsui.Settings;
 import eu.kennytv.worldeditsui.WorldEditSUIPlugin;
 import eu.kennytv.worldeditsui.compat.SimpleVector;
@@ -29,6 +30,7 @@ import org.bukkit.entity.Player;
 
 public abstract class DrawerBase implements Drawer {
 
+    protected static final int MAX_GAP = 30;
     protected static final int AREA_FACTOR = 256;
     protected final WorldEditSUIPlugin plugin;
     protected final Settings settings;
@@ -36,6 +38,12 @@ public abstract class DrawerBase implements Drawer {
     protected DrawerBase(final WorldEditSUIPlugin plugin) {
         this.plugin = plugin;
         this.settings = plugin.getSettings();
+    }
+
+    protected boolean hasValidSize(final Player player, final Region region) {
+        if (settings.getMaxSelectionSizeToDisplay() == 0) return true;
+        return region.getArea() <= settings.getMaxSelectionSizeToDisplay()
+                || (settings.useMaxSelectionSizeBypassPerm() && player.hasPermission("wesui.maxselectionsize.bypass"));
     }
 
     protected void playEffect(final Location location, final Player player) {
@@ -58,5 +66,9 @@ public abstract class DrawerBase implements Drawer {
         } else {
             plugin.getParticleHelper().playEffect(particle, location, settings.getParticleViewDistance(), player);
         }
+    }
+
+    protected int checkSpace(final int gap) {
+        return Math.min(gap, MAX_GAP);
     }
 }

@@ -150,7 +150,7 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
                 getLogger().info("§cNewest version available: §aVersion " + newestVersion + "§c, you're on §a" + version);
             } else if (compare == 1) {
                 if (version.getTag().equalsIgnoreCase("snapshot")) {
-                    getLogger().info("§cYou're running a development version, please report bugs on the Discord server (https://kennytv.eu/discord).");
+                    getLogger().info("§cYou're running a development version, please report bugs on the Discord server (https://discord.gg/vGCUzHq).");
                 } else {
                     getLogger().info("§cYou're running a version, that doesn't exist! §cN§ai§dc§ee§5!");
                 }

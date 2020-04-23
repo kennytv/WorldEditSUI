@@ -58,7 +58,9 @@ public final class UserManager {
 
     public void deleteUser(final Player player) {
         final User removedUser = users.remove(player.getUniqueId());
-        removedUser.clearCaches();
+        if (removedUser != null) {
+            removedUser.clearCaches();
+        }
     }
 
     public Map<UUID, User> getUsers() {

@@ -31,34 +31,26 @@ public final class ParticleHelper {
         this.settings = settings;
     }
 
-    public void playEffect(final ParticleData particle, final Location location, final int radius, final Player player) {
-        playEffect(particle, location, 0, 0, 0, radius, player);
-    }
-
-    public void playEffect(final ParticleData particle, final Location location, final float offX, final float offY, final float offZ, final int radius, final Player player) {
+    public void playEffect(final ParticleData particle, final Location location, final Player player) {
         if (!location.getWorld().equals(player.getWorld())) return;
 
-        final int radiusSquared = radius * radius;
-        if (player.getLocation().distanceSquared(location) > radiusSquared) return;
+        if (player.getLocation().distanceSquared(location) > particle.radiusSquared()) return;
 
-        player.spawnParticle(particle.getParticle(), location, 1, offX, offY, offZ, 0, particle.getData());
+        player.spawnParticle(particle.getParticle(), location, 1,
+                particle.offX(), particle.offY(), particle.offZ(), particle.speed(), particle.getData());
     }
 
-    public void playEffectToAll(final ParticleData particle, final ParticleData othersParticle, final Location location, final int radius, final Player origin) {
-        playEffectToAll(particle, othersParticle, location, 0, 0, 0, radius, origin);
-    }
-
-    public void playEffectToAll(final ParticleData particle, final ParticleData othersParticle, final Location location, final float offX, final float offY, final float offZ, final int radius, final Player origin) {
-        final int radiusSquared = radius * radius;
+    public void playEffectToAll(final ParticleData particle, final ParticleData othersParticle, final Location location, final Player origin) {
         for (final Player player : Bukkit.getOnlinePlayers()) {
             if (!location.getWorld().equals(player.getWorld())
-                    || player.getLocation().distanceSquared(location) > radiusSquared) continue;
+                    || player.getLocation().distanceSquared(location) > particle.radiusSquared()) continue;
 
             final boolean originalPlayer = player.getUniqueId().equals(origin.getUniqueId());
             if (!originalPlayer && !canSeeOtherParticles(player)) continue;
 
             final ParticleData toSend = originalPlayer ? particle : othersParticle;
-            player.spawnParticle(toSend.getParticle(), location, 1, offX, offY, offZ, 0, toSend.getData());
+            player.spawnParticle(toSend.getParticle(), location, 1,
+                    particle.offX(), particle.offY(), particle.offZ(), particle.speed(), toSend.getData());
         }
     }
 

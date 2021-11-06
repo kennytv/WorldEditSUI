@@ -30,20 +30,26 @@ import org.jetbrains.annotations.Nullable;
 public final class ParticleData {
 
     private final Particle particle;
+    private final int radiusSquared;
+    private final double speed;
+    private final double offX;
+    private final double offY;
+    private final double offZ;
     private final Object data;
 
-    public ParticleData(final Particle particle, @Nullable final Object data) {
+    public ParticleData(final Particle particle, final int radius) {
+        this(particle, radius, 0, 0, 0, 0, null);
+    }
+
+    public ParticleData(final Particle particle, final int radius, final double speed,
+                        final double offX, final double offY, final double offZ, @Nullable final Object data) {
         this.particle = particle;
+        this.radiusSquared = radius * radius;
         this.data = data;
-    }
-
-    public Particle getParticle() {
-        return particle;
-    }
-
-    @Nullable
-    public Object getData() {
-        return data;
+        this.speed = speed;
+        this.offX = offX;
+        this.offY = offY;
+        this.offZ = offZ;
     }
 
     //TODO proper error handling/warnings
@@ -75,5 +81,34 @@ public final class ParticleData {
         }
 
         throw new IllegalArgumentException("The datatype " + name + " is not yet supported by the plugin - please report this error!");
+    }
+
+    public Particle getParticle() {
+        return particle;
+    }
+
+    public int radiusSquared() {
+        return radiusSquared;
+    }
+
+    public double speed() {
+        return speed;
+    }
+
+    public double offX() {
+        return offX;
+    }
+
+    public double offY() {
+        return offY;
+    }
+
+    public double offZ() {
+        return offZ;
+    }
+
+    @Nullable
+    public Object getData() {
+        return data;
     }
 }

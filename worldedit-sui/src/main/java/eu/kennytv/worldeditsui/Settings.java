@@ -84,12 +84,25 @@ public final class Settings {
         final YamlConfiguration config = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "config.yml"));
         wandItem = config.getString("wand", "").toUpperCase().replace("MINECRAFT:", "");
 
+        particleViewDistance = config.getInt("particle-viewdistance", 99);
+        if (particleViewDistance < 1 || particleViewDistance > 500) {
+            plugin.getLogger().warning("To punish you for your deeds of setting the particle viewdistance to an astonishing "
+                    + particleViewDistance + ", it has been set to 2 blocks.");
+            plugin.getLogger().warning("Also, this puppy just died.\n"
+                    + "      __\n" +
+                    " (___()'`;\n" +
+                    " /,    /`\n" +
+                    " \\\\\"--\\\\");
+            plugin.getLogger().warning("Is this what you wanted?");
+            particleViewDistance = 2;
+        }
+
         particle = loadParticle(config, "particle", Particle.FLAME);
         clipboardParticle = loadParticle(config, "clipboard-particle", Particle.VILLAGER_HAPPY);
         wgRegionParticle = loadParticle(config, "wg-region-particle", Particle.VILLAGER_HAPPY);
 
+        maxPing = Math.max(config.getInt("max-ping"), 0);
         try {
-            maxPing = Math.max(config.getInt("max-ping"), 0);
             Player.Spigot.class.getDeclaredMethod("getPing");
         } catch (final NoSuchMethodException ignored) {
             if (maxPing != 0) {
@@ -147,19 +160,6 @@ public final class Settings {
         showByDefault = config.getBoolean("show-selection-by-default", true);
         showClipboardByDefault = config.getBoolean("show-clipboard-by-default");
 
-        particleViewDistance = config.getInt("particle-viewdistance", 99);
-        if (particleViewDistance < 1 || particleViewDistance > 500) {
-            plugin.getLogger().warning("To punish you for your deeds of setting the particle viewdistance to an astonishing "
-                    + particleViewDistance + ", it has been set to 2 blocks.");
-            plugin.getLogger().warning("Also, this puppy just died.\n"
-                    + "      __\n" +
-                    " (___()'`;\n" +
-                    " /,    /`\n" +
-                    " \\\\\"--\\\\");
-            plugin.getLogger().warning("Is this what you wanted?");
-            particleViewDistance = 2;
-        }
-
         expiryEnabled = config.getBoolean("particle-expiry.enabled", false);
         if (expiryEnabled) {
             expireMessage = config.getBoolean("particle-expiry.expire-message", true);
@@ -213,16 +213,29 @@ public final class Settings {
         } catch (final Exception e) {
             plugin.getLogger().warning("Unknown particle for " + s + ": " + particleName.toUpperCase());
             plugin.getLogger().warning("Switched to default particle: " + defaultParticle);
-            return new ParticleData(defaultParticle, null);
+            return new ParticleData(defaultParticle, particleViewDistance);
         }
 
+        double speed = 0;
+        double offX = 0;
+        double offY = 0;
+        double offZ = 0;
+        int radius = particleViewDistance;
+        final ConfigurationSection particleSection = section.getConfigurationSection(s + "-data");
+        if (particleSection != null) {
+            speed = Math.max(0, particleSection.getDouble("speed"));
+            offX = particleSection.getDouble("offX");
+            offY = particleSection.getDouble("offY");
+            offZ = particleSection.getDouble("offZ");
+            radius = Math.min(500, Math.max(1, particleSection.getInt("radius", radius))); // TODO warn if radius is too high
+        }
         try {
-            return new ParticleData(particle, ParticleData.getExtraData(particle, section.getConfigurationSection(s + "-data")));
+            return new ParticleData(particle, radius, speed, offX, offY, offZ, ParticleData.getExtraData(particle, particleSection));
         } catch (final Exception e) {
             plugin.getLogger().warning("Error loading particle data of " + particleName + " - Missing data? You may read up on how to correctly set its data at the bottom of the plugin's Spigot page.");
             plugin.getLogger().warning("Falling back to default particle: " + defaultParticle);
             e.printStackTrace();
-            return new ParticleData(particle, null);
+            return new ParticleData(particle, particleViewDistance);
         }
     }
 

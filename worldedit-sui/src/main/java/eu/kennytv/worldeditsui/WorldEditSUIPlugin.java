@@ -278,10 +278,9 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
                         location.setY(vector.getY());
                         location.setZ(vector.getZ());
                         if (settings.sendParticlesToAll(drawedType)) {
-                            particleHelper.playEffectToAll(settings.getParticle(drawedType), settings.getOthersParticle(drawedType),
-                                    location, settings.getParticleViewDistance(), player);
+                            particleHelper.playEffectToAll(settings.getParticle(drawedType), settings.getOthersParticle(drawedType), location, player);
                         } else {
-                            particleHelper.playEffect(settings.getParticle(drawedType), location, settings.getParticleViewDistance(), player);
+                            particleHelper.playEffect(settings.getParticle(drawedType), location, player);
                         }
                     }
                     return;

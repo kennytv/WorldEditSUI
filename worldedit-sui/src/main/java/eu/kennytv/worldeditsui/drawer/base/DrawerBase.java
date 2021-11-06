@@ -62,9 +62,9 @@ public abstract class DrawerBase implements Drawer {
         final ParticleData particle = settings.getParticle(drawedType);
         if (settings.sendParticlesToAll(drawedType)) {
             final ParticleData othersParticle = settings.getOthersParticle(drawedType);
-            plugin.getParticleHelper().playEffectToAll(particle, othersParticle, location, settings.getParticleViewDistance(), player);
+            plugin.getParticleHelper().playEffectToAll(particle, othersParticle, location, player);
         } else {
-            plugin.getParticleHelper().playEffect(particle, location, settings.getParticleViewDistance(), player);
+            plugin.getParticleHelper().playEffect(particle, location, player);
         }
     }
 

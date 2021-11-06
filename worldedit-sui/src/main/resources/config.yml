@@ -12,6 +12,7 @@ cache-calculated-positions: true
 #
 # If you want to use a particle that requires extra data (REDSTONE, FALLING_DUST, BLOCK_DUST, BLOCK_CRACK, ITEM_CRACK),
 # you can read up on how to do that at the bottom of the plugin's Spigot page.
+# The same applies to per-particle view-distance, speed, and offsets.
 particle: FLAME
 # Shown for the clipboard (after using WorldEdit's //copy command).
 # Can be enabled with the '/wesui toggleclipboard' command.

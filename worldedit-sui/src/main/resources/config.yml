@@ -1,4 +1,4 @@
-# WorldEditSUI Plugin by KennyTV
+# WorldEditSUI Plugin by kennytv
 
 # If enabled, the positions for particles will only be calculated once per selection and then cached.
 # This essentially entirely removes the higher CPU usage of the calculations, but results in some caching if many/big selections are being made.

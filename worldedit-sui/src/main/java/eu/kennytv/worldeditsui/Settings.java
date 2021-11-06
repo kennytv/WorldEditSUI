@@ -1,6 +1,6 @@
 /*
- * WorldEditSUI - https://git.io/wesui
- * Copyright (C) 2018-2020 KennyTV (https://github.com/KennyTV)
+ * This file is part of WorldEditSUI - https://git.io/wesui
+ * Copyright (C) 2018-2021 kennytv (https://github.com/kennytv)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -217,8 +217,7 @@ public final class Settings {
         }
 
         try {
-            final Object data = ParticleData.getExtraData(particle, section.getConfigurationSection(s + "-data"));
-            return new ParticleData(particle, data);
+            return new ParticleData(particle, ParticleData.getExtraData(particle, section.getConfigurationSection(s + "-data")));
         } catch (final Exception e) {
             plugin.getLogger().warning("Error loading particle data of " + particleName + " - Missing data? You may read up on how to correctly set its data at the bottom of the plugin's Spigot page.");
             plugin.getLogger().warning("Falling back to default particle: " + defaultParticle);

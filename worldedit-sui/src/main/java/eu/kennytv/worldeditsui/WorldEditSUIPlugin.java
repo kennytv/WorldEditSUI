@@ -1,6 +1,6 @@
 /*
- * WorldEditSUI - https://git.io/wesui
- * Copyright (C) 2018-2020 KennyTV (https://github.com/KennyTV)
+ * This file is part of WorldEditSUI - https://git.io/wesui
+ * Copyright (C) 2018-2021 kennytv (https://github.com/kennytv)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -61,9 +61,6 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-/**
- * @author KennyTV
- */
 public final class WorldEditSUIPlugin extends JavaPlugin {
 
     private static final String PREFIX = "§8[§eWorldEditSUI§8] ";
@@ -142,7 +139,7 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
     }
 
     private void printEnableMessage() {
-        getLogger().info("Plugin by KennyTV");
+        getLogger().info("Plugin by kennytv");
         getServer().getScheduler().runTaskAsynchronously(this, () -> {
             updateAvailable();
             final int compare = version.compareTo(newestVersion);

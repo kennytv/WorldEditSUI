@@ -1,6 +1,6 @@
 /*
- * WorldEditSUI - https://git.io/wesui
- * Copyright (C) 2018-2020 KennyTV (https://github.com/KennyTV)
+ * This file is part of WorldEditSUI - https://git.io/wesui
+ * Copyright (C) 2018-2021 kennytv (https://github.com/kennytv)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -152,7 +152,7 @@ public final class WESUICommand implements CommandExecutor, TabCompleter {
             sender.sendMessage(getMessage("helpToggleClipboard"));
         if (plugin.isWorldGuardEnabled() && sender.hasPermission("wesui.command.showregion"))
             sender.sendMessage(getMessage("helpShowRegion"));
-        sender.sendMessage("§8× §eVersion " + plugin.getVersion() + " §7by §bKennyTV");
+        sender.sendMessage("§8× §eVersion " + plugin.getVersion() + " §7by §bkennytv");
         sender.sendMessage(getMessage("helpHeader"));
         sender.sendMessage("");
     }

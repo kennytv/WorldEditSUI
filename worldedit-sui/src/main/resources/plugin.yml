@@ -1,7 +1,7 @@
 name: ${project.name}
 version: ${project.version}
 main: eu.kennytv.worldeditsui.WorldEditSUIPlugin
-authors: [KennyTV]
+authors: [kennytv]
 depend: [WorldEdit]
 softdepend: [WorldGuard]
 website: https://www.spigotmc.org/resources/worldeditsui.60726/

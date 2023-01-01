@@ -43,12 +43,12 @@ import eu.kennytv.worldeditsui.drawer.base.DrawedType;
 import eu.kennytv.worldeditsui.listener.PlayerJoinListener;
 import eu.kennytv.worldeditsui.listener.PlayerQuitListener;
 import eu.kennytv.worldeditsui.listener.WESelectionListener;
-import eu.kennytv.worldeditsui.metrics.MetricsLite;
 import eu.kennytv.worldeditsui.user.SelectionCache;
 import eu.kennytv.worldeditsui.user.User;
 import eu.kennytv.worldeditsui.user.UserManager;
 import eu.kennytv.worldeditsui.util.ParticleHelper;
 import eu.kennytv.worldeditsui.util.Version;
+import org.bstats.bukkit.Metrics;
 import org.bukkit.Location;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
@@ -127,7 +127,7 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
         getServer().getScheduler().runTaskTimerAsynchronously(this, this::updateSelections, settings.getParticleSendInterval(), settings.getParticleSendInterval());
         checkTasks();
 
-        new MetricsLite(this);
+        new Metrics(this, 5444);
     }
 
     @Override

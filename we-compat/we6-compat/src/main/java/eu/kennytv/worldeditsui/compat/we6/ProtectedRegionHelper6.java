@@ -41,9 +41,15 @@ public final class ProtectedRegionHelper6 implements ProtectedRegionHelper {
     @Override
     public ProtectedRegionWrapper getRegion(final World world, final String regionName) {
         final RegionManager regionManager = regionContainer.get(world);
-        if (regionManager == null) return null;
+        if (regionManager == null) {
+            return null;
+        }
 
         final ProtectedRegion region = regionManager.getRegion(regionName);
+        if (region == null) {
+            return null;
+        }
+
         final RegionType type = region.getType();
         final com.sk89q.worldedit.world.World worldWrapper = new BukkitWorld(world);
         switch (type) {

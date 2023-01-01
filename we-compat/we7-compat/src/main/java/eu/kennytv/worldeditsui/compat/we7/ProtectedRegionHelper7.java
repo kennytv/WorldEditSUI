@@ -42,9 +42,15 @@ public final class ProtectedRegionHelper7 implements ProtectedRegionHelper {
     public ProtectedRegionWrapper getRegion(final World world, final String regionName) {
         final BukkitWorld worldWrapper = new BukkitWorld(world);
         final RegionManager regionManager = regionContainer.get(worldWrapper);
-        if (regionManager == null) return null;
+        if (regionManager == null) {
+            return null;
+        }
 
         final ProtectedRegion region = regionManager.getRegion(regionName);
+        if (region == null) {
+            return null;
+        }
+
         final RegionType type = region.getType();
         switch (type) {
             case CUBOID:

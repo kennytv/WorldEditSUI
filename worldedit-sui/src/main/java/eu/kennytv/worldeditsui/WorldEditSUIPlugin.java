@@ -54,7 +54,7 @@ import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.jetbrains.annotations.Nullable;
+import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -333,7 +333,7 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
         return regionHelper;
     }
 
-    @Nullable
+    @MonotonicNonNull
     public ProtectedRegionHelper getProtectedRegionHelper() {
         return protectedRegionHelper;
     }

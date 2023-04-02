@@ -1,5 +1,5 @@
-name: ${project.name}
-version: ${project.version}
+name: WorldEditSUI
+version: "${version}"
 main: eu.kennytv.worldeditsui.WorldEditSUIPlugin
 authors: [kennytv]
 depend: [WorldEdit]

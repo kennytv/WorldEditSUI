@@ -29,11 +29,7 @@ import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.regions.RegionSelector;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import eu.kennytv.worldeditsui.command.WESUICommand;
-import eu.kennytv.worldeditsui.compat.ProtectedRegionHelper;
-import eu.kennytv.worldeditsui.compat.ProtectedRegionWrapper;
-import eu.kennytv.worldeditsui.compat.RegionHelper;
-import eu.kennytv.worldeditsui.compat.SelectionType;
-import eu.kennytv.worldeditsui.compat.SimpleVector;
+import eu.kennytv.worldeditsui.compat.*;
 import eu.kennytv.worldeditsui.compat.we6.ProtectedRegionHelper6;
 import eu.kennytv.worldeditsui.compat.we6.RegionHelper6;
 import eu.kennytv.worldeditsui.compat.we7.ProtectedRegionHelper7;
@@ -60,6 +56,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.concurrent.TimeUnit;
 
 public final class WorldEditSUIPlugin extends JavaPlugin {
 
@@ -77,6 +74,8 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
     private int persistentTogglesTask = -1;
     private boolean worldGuardEnabled;
 
+    private boolean foliaSupport;
+
     @Override
     public void onEnable() {
         version = new Version(getDescription().getVersion());
@@ -90,6 +89,12 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
             return;
         }
 
+        try {
+            // Assume API is present
+            Class.forName("io.papermc.paper.threadedregions.scheduler.EntityScheduler");
+            foliaSupport = true;
+        } catch (Exception ignored) {
+        }
         boolean isWorldEdit7 = true;
         try {
             Class.forName("com.sk89q.worldedit.math.Vector2");
@@ -124,7 +129,11 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
         command.setPermissionMessage(settings.getMessage("noPermission"));
 
         // Start tasks
-        getServer().getScheduler().runTaskTimerAsynchronously(this, this::updateSelections, settings.getParticleSendInterval(), settings.getParticleSendInterval());
+        if (!foliaSupport) {
+            getServer().getScheduler().runTaskTimerAsynchronously(this, this::updateSelections, settings.getParticleSendInterval(), settings.getParticleSendInterval());
+        } else {
+            getServer().getAsyncScheduler().runAtFixedRate(this, scheduledTask -> this.updateSelections(), settings.getParticleSendInterval() * 50L, settings.getParticleSendInterval() * 50L, TimeUnit.MILLISECONDS);
+        }
         checkTasks();
 
         new Metrics(this, 5444);
@@ -140,7 +149,20 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
 
     private void printEnableMessage() {
         getLogger().info("Plugin by kennytv");
-        getServer().getScheduler().runTaskAsynchronously(this, () -> {
+        if (foliaSupport) getServer().getAsyncScheduler().runNow(this, scheduledTask -> {
+            updateAvailable();
+            final int compare = version.compareTo(newestVersion);
+            if (compare == -1) {
+                getLogger().info("§cNewest version available: §aVersion " + newestVersion + "§c, you're on §a" + version);
+            } else if (compare == 1) {
+                if (version.getTag().equalsIgnoreCase("snapshot")) {
+                    getLogger().info("§cYou're running a development version, please report bugs on the Discord server (https://discord.gg/vGCUzHq).");
+                } else {
+                    getLogger().info("§cYou're running a version, that doesn't exist! §cN§ai§dc§ee§5!");
+                }
+            }
+        });
+        else getServer().getScheduler().runTaskAsynchronously(this, () -> {
             updateAvailable();
             final int compare = version.compareTo(newestVersion);
             if (compare == -1) {
@@ -172,30 +194,53 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
     public void checkTasks() {
         // Start tasks if not already running, or cancel them if one is running but now disabled in the config
         if (expiryTask == -1 && settings.isExpiryEnabled()) {
-            expiryTask = getServer().getScheduler().runTaskTimer(this, () -> {
-                for (final User user : userManager.getUsers().values()) {
-                    if (user.getExpireTimestamp() == 0) continue;
-                    if (user.getExpireTimestamp() > System.currentTimeMillis()) continue;
+            if (foliaSupport) {
+                getServer().getGlobalRegionScheduler().runAtFixedRate(
+                        this,
+                        scheduledTask -> {
+                            for (final User user : userManager.getUsers().values()) {
+                                if (user.getExpireTimestamp() == 0) continue;
+                                if (user.getExpireTimestamp() > System.currentTimeMillis()) continue;
 
-                    user.setExpireTimestamp(0);
-                    if (settings.hasExpireMessage()) {
-                        getServer().getPlayer(user.getUuid()).sendMessage(settings.getMessage("idled"));
+                                user.setExpireTimestamp(0);
+                                if (settings.hasExpireMessage()) {
+                                    getServer().getPlayer(user.getUuid()).sendMessage(settings.getMessage("idled"));
+                                }
+                            }
+                        },
+                        20,
+                        20);
+            } else {
+                expiryTask = getServer().getScheduler().runTaskTimer(this, () -> {
+                    for (final User user : userManager.getUsers().values()) {
+                        if (user.getExpireTimestamp() == 0) continue;
+                        if (user.getExpireTimestamp() > System.currentTimeMillis()) continue;
+
+                        user.setExpireTimestamp(0);
+                        if (settings.hasExpireMessage()) {
+                            getServer().getPlayer(user.getUuid()).sendMessage(settings.getMessage("idled"));
+                        }
                     }
-                }
-            }, 20, 20).getTaskId();
+                }, 20, 20).getTaskId();
+            }
+
         } else if (expiryTask != -1 && !settings.isExpiryEnabled()) {
             for (final User user : userManager.getUsers().values()) {
                 user.setExpireTimestamp(-1);
             }
-            getServer().getScheduler().cancelTask(expiryTask);
+            getServer().getScheduler().cancelTasks(this);
             expiryTask = -1;
         }
 
         if (persistentTogglesTask == -1 && settings.hasPersistentToggles()) {
             // Check every 15 minutes
-            persistentTogglesTask = getServer().getScheduler().runTaskTimerAsynchronously(this, () -> settings.saveData(), 18000, 18000).getTaskId();
+            if (this.foliaSupport) {
+                getServer().getAsyncScheduler().runAtFixedRate(this, (s) -> settings.saveData(), 18000 * 50, 18000 * 50, TimeUnit.MILLISECONDS);
+            } else {
+                persistentTogglesTask = getServer().getScheduler().runTaskTimerAsynchronously(this, () -> settings.saveData(), 18000, 18000).getTaskId();
+            }
         } else if (persistentTogglesTask != -1 && !settings.hasPersistentToggles()) {
-            getServer().getScheduler().cancelTask(persistentTogglesTask);
+            getServer().getScheduler().cancelTasks(this);
             persistentTogglesTask = -1;
         }
     }
@@ -344,5 +389,9 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
 
     public boolean isWorldGuardEnabled() {
         return worldGuardEnabled;
+    }
+
+    public boolean isFoliaSupport() {
+        return foliaSupport;
     }
 }

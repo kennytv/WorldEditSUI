@@ -1,6 +1,11 @@
 plugins {
     java
+    id("com.github.johnrengelman.shadow") version "7.1.2"
 }
+
+group = "eu.kennytv.worldeditsui"
+version = "1.7.3-SNAPSHOT"
+
 repositories {
     mavenLocal()
     maven {
@@ -27,5 +32,21 @@ dependencies {
     compileOnly("dev.folia:folia-api:1.19.4-R0.1-SNAPSHOT")
     compileOnly("org.jetbrains:annotations:23.1.0")
 }
+tasks.named<Copy>("processResources") {
+    inputs.property("version", version)
+    filesMatching("plugin.yml") {
+        expand("version" to version)
+    }
+}
 
 description = "WorldEditSUI"
+
+tasks {
+    shadowJar {
+        archiveFileName.set("${project.name}.${archiveExtension.getOrElse("jar")}")
+        // https://github.com/johnrengelman/shadow/issues/107
+        isZip64 = true
+
+        relocate("org.bstats", "eu.kennytv.worldeditsui.bstats")
+    }
+}

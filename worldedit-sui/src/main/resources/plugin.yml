@@ -1,12 +1,12 @@
-name: ${project.name}
-version: ${project.version}
+name: WorldEditSUI
+version: "${version}"
 main: eu.kennytv.worldeditsui.WorldEditSUIPlugin
 authors: [kennytv]
 depend: [WorldEdit]
 softdepend: [WorldGuard]
 website: https://www.spigotmc.org/resources/worldeditsui.60726/
 api-version: 1.13
-folia-support: true
+folia-supported: true
 
 commands:
   worldeditsui:

@@ -78,6 +78,12 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        try {
+            // Assume API is present
+            Class.forName("io.papermc.paper.threadedregions.scheduler.EntityScheduler");
+            foliaSupport = true;
+        } catch (Exception ignored) {
+        }
         version = new Version(getDescription().getVersion());
         printEnableMessage();
 
@@ -89,12 +95,7 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
             return;
         }
 
-        try {
-            // Assume API is present
-            Class.forName("io.papermc.paper.threadedregions.scheduler.EntityScheduler");
-            foliaSupport = true;
-        } catch (Exception ignored) {
-        }
+
         boolean isWorldEdit7 = true;
         try {
             Class.forName("com.sk89q.worldedit.math.Vector2");

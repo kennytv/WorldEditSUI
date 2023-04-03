@@ -6,6 +6,7 @@ depend: [WorldEdit]
 softdepend: [WorldGuard]
 website: https://www.spigotmc.org/resources/worldeditsui.60726/
 api-version: 1.13
+folia-supported: true
 
 commands:
   worldeditsui:

@@ -19,6 +19,9 @@
 package eu.kennytv.worldeditsui.listener;
 
 import eu.kennytv.worldeditsui.WorldEditSUIPlugin;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
@@ -27,10 +30,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
-
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
 
 public final class PlayerJoinListener implements Listener {
 
@@ -45,11 +44,12 @@ public final class PlayerJoinListener implements Listener {
     public void playerJoin(final PlayerJoinEvent event) {
         final Player player = event.getPlayer();
         plugin.getUserManager().createUser(player);
+
         if (!plugin.getSettings().hasUpdateChecks()) return;
         if (!player.hasPermission("worldeditsui.admin")) return;
         if (notified.contains(player.getUniqueId())) return;
 
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+        plugin.runAsync(() -> {
             if (!plugin.updateAvailable()) return;
             if (!player.isOnline()) return;
 

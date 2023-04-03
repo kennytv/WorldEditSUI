@@ -46,8 +46,16 @@ import eu.kennytv.worldeditsui.listener.WESelectionListener;
 import eu.kennytv.worldeditsui.user.SelectionCache;
 import eu.kennytv.worldeditsui.user.User;
 import eu.kennytv.worldeditsui.user.UserManager;
+import eu.kennytv.worldeditsui.util.Cancellable;
+import eu.kennytv.worldeditsui.util.CancellableBukkitTask;
+import eu.kennytv.worldeditsui.util.CancellableScheduledTask;
 import eu.kennytv.worldeditsui.util.ParticleHelper;
 import eu.kennytv.worldeditsui.util.Version;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.concurrent.TimeUnit;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Location;
 import org.bukkit.command.PluginCommand;
@@ -56,13 +64,9 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-
 public final class WorldEditSUIPlugin extends JavaPlugin {
 
+    private static final boolean FOLIA = hasClass("io.papermc.paper.threadedregions.scheduler.EntityScheduler");
     private static final String PREFIX = "§8[§eWorldEditSUI§8] ";
     private RegionHelper regionHelper;
     private ProtectedRegionHelper protectedRegionHelper;
@@ -73,8 +77,8 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
     private WorldEditPlugin worldEditPlugin;
     private Version version;
     private Version newestVersion;
-    private int expiryTask = -1;
-    private int persistentTogglesTask = -1;
+    private Cancellable expiryTask;
+    private Cancellable persistentTogglesTask;
     private boolean worldGuardEnabled;
 
     @Override
@@ -89,6 +93,7 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
+
 
         boolean isWorldEdit7 = true;
         try {
@@ -124,8 +129,8 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
         command.setPermissionMessage(settings.getMessage("noPermission"));
 
         // Start tasks
-        getServer().getScheduler().runTaskTimerAsynchronously(this, this::updateSelections, settings.getParticleSendInterval(), settings.getParticleSendInterval());
-        checkTasks();
+        runRepeatedAsync(this::updateSelections, settings.getParticleSendInterval(), settings.getParticleSendInterval());
+        reloadTasks();
 
         new Metrics(this, 5444);
     }
@@ -138,14 +143,38 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
         getServer().getOnlinePlayers().forEach(player -> userManager.deleteUser(player));
     }
 
+    public Cancellable runRepeatedAsync(final Runnable runnable, final long delay, final long period) {
+        if (FOLIA) {
+            return new CancellableScheduledTask(getServer().getAsyncScheduler().runAtFixedRate(this, scheduledTask -> runnable.run(), delay * 50, period * 50, TimeUnit.MILLISECONDS));
+        } else {
+            return new CancellableBukkitTask(getServer().getScheduler().runTaskTimerAsynchronously(this, runnable, delay, period));
+        }
+    }
+
+    public Cancellable runRepeated(final Runnable runnable, final long delay, final long period) {
+        if (FOLIA) {
+            return new CancellableScheduledTask(getServer().getGlobalRegionScheduler().runAtFixedRate(this, task -> runnable.run(), delay, period));
+        } else {
+            return new CancellableBukkitTask(getServer().getScheduler().runTaskTimer(this, runnable, delay, period));
+        }
+    }
+
+    public void runAsync(final Runnable runnable) {
+        if (FOLIA) {
+            getServer().getAsyncScheduler().runNow(this, task -> runnable.run());
+        } else {
+            getServer().getScheduler().runTaskAsynchronously(this, runnable);
+        }
+    }
+
     private void printEnableMessage() {
         getLogger().info("Plugin by kennytv");
-        getServer().getScheduler().runTaskAsynchronously(this, () -> {
+        runAsync(() -> {
             updateAvailable();
             final int compare = version.compareTo(newestVersion);
-            if (compare == -1) {
+            if (compare < 0) {
                 getLogger().info("§cNewest version available: §aVersion " + newestVersion + "§c, you're on §a" + version);
-            } else if (compare == 1) {
+            } else if (compare > 0) {
                 if (version.getTag().equalsIgnoreCase("snapshot")) {
                     getLogger().info("§cYou're running a development version, please report bugs on the Discord server (https://discord.gg/vGCUzHq).");
                 } else {
@@ -163,16 +192,16 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
             if (newVersion.equals(version)) return false;
 
             newestVersion = newVersion;
-            return version.compareTo(newVersion) == -1;
+            return version.compareTo(newVersion) < 0;
         } catch (final Exception ignored) {
             return false;
         }
     }
 
-    public void checkTasks() {
+    public void reloadTasks() {
         // Start tasks if not already running, or cancel them if one is running but now disabled in the config
-        if (expiryTask == -1 && settings.isExpiryEnabled()) {
-            expiryTask = getServer().getScheduler().runTaskTimer(this, () -> {
+        if (expiryTask == null && settings.isExpiryEnabled()) {
+            expiryTask = runRepeated(() -> {
                 for (final User user : userManager.getUsers().values()) {
                     if (user.getExpireTimestamp() == 0) continue;
                     if (user.getExpireTimestamp() > System.currentTimeMillis()) continue;
@@ -182,21 +211,22 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
                         getServer().getPlayer(user.getUuid()).sendMessage(settings.getMessage("idled"));
                     }
                 }
-            }, 20, 20).getTaskId();
-        } else if (expiryTask != -1 && !settings.isExpiryEnabled()) {
+            }, 20, 20);
+        } else if (expiryTask != null && !settings.isExpiryEnabled()) {
+            expiryTask.cancel();
+            expiryTask = null;
+
             for (final User user : userManager.getUsers().values()) {
                 user.setExpireTimestamp(-1);
             }
-            getServer().getScheduler().cancelTask(expiryTask);
-            expiryTask = -1;
         }
 
-        if (persistentTogglesTask == -1 && settings.hasPersistentToggles()) {
+        if (persistentTogglesTask == null && settings.hasPersistentToggles()) {
             // Check every 15 minutes
-            persistentTogglesTask = getServer().getScheduler().runTaskTimerAsynchronously(this, () -> settings.saveData(), 18000, 18000).getTaskId();
-        } else if (persistentTogglesTask != -1 && !settings.hasPersistentToggles()) {
-            getServer().getScheduler().cancelTask(persistentTogglesTask);
-            persistentTogglesTask = -1;
+            persistentTogglesTask = runRepeatedAsync(() -> settings.saveData(), 18000, 18000);
+        } else if (persistentTogglesTask != null && !settings.hasPersistentToggles()) {
+            persistentTogglesTask.cancel();
+            persistentTogglesTask = null;
         }
     }
 
@@ -344,5 +374,14 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
 
     public boolean isWorldGuardEnabled() {
         return worldGuardEnabled;
+    }
+
+    private static boolean hasClass(final String className) {
+        try {
+            Class.forName(className);
+            return true;
+        } catch (final ClassNotFoundException e) {
+            return false;
+        }
     }
 }

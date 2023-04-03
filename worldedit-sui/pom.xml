@@ -42,12 +42,13 @@
         <dependency>
             <groupId>org.bstats</groupId>
             <artifactId>bstats-bukkit</artifactId>
-            <version>3.0.0</version>
+            <version>3.0.2</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.sk89q.worldedit</groupId>
             <artifactId>worldedit-bukkit</artifactId>
+            <!--suppress VulnerableLibrariesLocal -->
             <version>7.2.13</version>
             <scope>provided</scope>
             <exclusions>

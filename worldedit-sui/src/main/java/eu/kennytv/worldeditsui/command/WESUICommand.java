@@ -91,7 +91,7 @@ public final class WESUICommand implements CommandExecutor, TabCompleter {
                     settings.loadLanguageFile();
                     // Empty cache to recalculate positions
                     plugin.getUserManager().getUsers().values().forEach(User::clearCaches);
-                    plugin.checkTasks();
+                    plugin.reloadTasks();
                     sender.sendMessage(getMessage("reload"));
                     // Reset Bukkit's no perm message for the command
                     plugin.getCommand("worldeditsui").setPermissionMessage(settings.getMessage("noPermission"));

@@ -28,7 +28,8 @@ dependencies {
     implementation(rootProject.project(":we-compat:we7-compat"))
     implementation("org.bstats:bstats-bukkit:3.0.0")
     compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.2.13")
-    compileOnly("com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT")
+    // compileOnly("com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT")
+    compileOnly("dev.folia:folia-api:1.19.4-R0.1-SNAPSHOT")
     compileOnly("org.jetbrains:annotations:23.1.0")
 }
 tasks.named<Copy>("processResources") {

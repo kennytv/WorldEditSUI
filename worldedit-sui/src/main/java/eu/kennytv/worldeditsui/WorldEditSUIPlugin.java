@@ -53,8 +53,8 @@ import eu.kennytv.worldeditsui.util.ParticleHelper;
 import eu.kennytv.worldeditsui.util.Version;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.concurrent.TimeUnit;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Location;
@@ -170,7 +170,7 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
     private void printEnableMessage() {
         getLogger().info("Plugin by kennytv");
         runAsync(() -> {
-            updateAvailable();
+            checkForLatestVersion();
             final int compare = version.compareTo(newestVersion);
             if (compare < 0) {
                 getLogger().info("§cNewest version available: §aVersion " + newestVersion + "§c, you're on §a" + version);
@@ -184,15 +184,20 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
         });
     }
 
-    public boolean updateAvailable() {
+    public boolean checkForLatestVersion() {
         try {
-            final HttpURLConnection c = (HttpURLConnection) new URL("https://api.spigotmc.org/legacy/update.php?resource=60726").openConnection();
-            final String newVersionString = new BufferedReader(new InputStreamReader(c.getInputStream())).readLine().replaceAll("[a-zA-Z -]", "");
-            final Version newVersion = new Version(newVersionString);
-            if (newVersion.equals(version)) return false;
+            final URLConnection connection = new URL("https://hangar.papermc.io/api/v1/projects/WorldEditSUI/latestrelease").openConnection();
+            connection.setRequestProperty("User-Agent", "WorldEditSUI/" + getVersion());
+            try (final BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
+                final String newVersionString = reader.readLine();
+                final Version newVersion = new Version(newVersionString);
+                if (newVersion.equals(version)) {
+                    return false;
+                }
 
-            newestVersion = newVersion;
-            return version.compareTo(newVersion) < 0;
+                newestVersion = newVersion;
+                return version.compareTo(newVersion) < 0;
+            }
         } catch (final Exception ignored) {
             return false;
         }
@@ -201,17 +206,7 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
     public void reloadTasks() {
         // Start tasks if not already running, or cancel them if one is running but now disabled in the config
         if (expiryTask == null && settings.isExpiryEnabled()) {
-            expiryTask = runRepeated(() -> {
-                for (final User user : userManager.getUsers().values()) {
-                    if (user.getExpireTimestamp() == 0) continue;
-                    if (user.getExpireTimestamp() > System.currentTimeMillis()) continue;
-
-                    user.setExpireTimestamp(0);
-                    if (settings.hasExpireMessage()) {
-                        getServer().getPlayer(user.getUuid()).sendMessage(settings.getMessage("idled"));
-                    }
-                }
-            }, 20, 20);
+            expiryTask = runRepeated(this::expiryTask, 20, 20);
         } else if (expiryTask != null && !settings.isExpiryEnabled()) {
             expiryTask.cancel();
             expiryTask = null;
@@ -230,18 +225,36 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
         }
     }
 
+    private void expiryTask() {
+        for (final User user : userManager.getUsers().values()) {
+            if (user.getExpireTimestamp() == 0) continue;
+            if (user.getExpireTimestamp() > System.currentTimeMillis()) continue;
+
+            user.setExpireTimestamp(0);
+            if (settings.hasExpireMessage()) {
+                getServer().getPlayer(user.getUuid()).sendMessage(settings.getMessage("idled"));
+            }
+        }
+    }
+
     private void updateSelections() {
         for (final Player player : getServer().getOnlinePlayers()) {
-            if (!player.isOnline()) continue;
+            if (!player.isOnline()) {
+                continue;
+            }
 
             final User user = userManager.getUser(player);
-            if (user == null) continue;
-            // Check for sending restrictions
-            if (!user.isSelectionShown() && !user.isClipboardShown()) continue;
-            if (settings.isExpiryEnabled() && user.getExpireTimestamp() == 0)
+            if (user == null) {
                 continue;
-            if (settings.getPermission() != null && !player.hasPermission(settings.getPermission())) continue;
-            if (settings.getMaxPing() != 0 && player.spigot().getPing() > settings.getMaxPing()) continue;
+            }
+
+            // Check for sending restrictions
+            if (!user.isSelectionShown() && !user.isClipboardShown()
+                    || settings.isExpiryEnabled() && user.getExpireTimestamp() == 0
+                    || settings.getPermission() != null && !player.hasPermission(settings.getPermission())
+                    || settings.getMaxPing() != 0 && player.spigot().getPing() > settings.getMaxPing()) {
+                continue;
+            }
 
             final LocalSession session = worldEditPlugin.getSession(player);
             final RegionSelector selector = session.getRegionSelector(new BukkitWorld(player.getWorld()));
@@ -254,42 +267,47 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
 
             // Clipboard
             if (user.isClipboardShown()) {
-                try {
-                    final ClipboardHolder holder = session.getClipboard();
-                    final Clipboard clipboard = holder.getClipboard();
-                    final Location location = player.getLocation();
-                    final SimpleVector origin = regionHelper.getOrigin(clipboard);
-
-                    // Transform the clipboard if necessary
-                    final Transform transform = holder.getTransform();
-                    final Region region = transform.isIdentity() ? clipboard.getRegion() : regionHelper.transformAndReShift(holder, clipboard.getRegion());
-
-                    // Shift the transformed region relative to the player
-                    final Region shiftedRegion = regionHelper.shift(region,
-                            location.getBlockX() - origin.getX(), location.getBlockY() - origin.getY(), location.getBlockZ() - origin.getZ());
-                    drawManager.getDrawer(SelectionType.CUBOID).draw(player, shiftedRegion, DrawedType.CLIPBOARD);
-                } catch (final EmptyClipboardException ignored) {
-                    // Ignore if there's no clipboard
-                }
+                drawClipboard(player, session);
             }
 
             // Selection
             if (user.isSelectionShown()) {
-                final Region region;
-                try {
-                    region = selector.getRegion();
-                } catch (final IncompleteRegionException ignored) {
-                    // Clear cache if present
-                    if (settings.cacheLocations()) {
-                        user.clearCache(DrawedType.SELECTED);
-                    }
-                    continue;
-                }
+                drawSelection(selector, player, user);
+            }
+        }
+    }
 
-                final SelectionType selectionType = SelectionType.fromKey(selector.getTypeName());
-                if (selectionType != null) {
-                    drawSelection(player, user, region, selectionType, DrawedType.SELECTED);
-                }
+    private void drawClipboard(final Player player, final LocalSession session) {
+        try {
+            final ClipboardHolder holder = session.getClipboard();
+            final Clipboard clipboard = holder.getClipboard();
+            final Location location = player.getLocation();
+            final SimpleVector origin = regionHelper.getOrigin(clipboard);
+
+            // Transform the clipboard if necessary
+            final Transform transform = holder.getTransform();
+            final Region region = transform.isIdentity() ? clipboard.getRegion() : regionHelper.transformAndReShift(holder, clipboard.getRegion());
+
+            // Shift the transformed region relative to the player
+            final Region shiftedRegion = regionHelper.shift(region,
+                    location.getBlockX() - origin.getX(), location.getBlockY() - origin.getY(), location.getBlockZ() - origin.getZ());
+            drawManager.getDrawer(SelectionType.CUBOID).draw(player, shiftedRegion, DrawedType.CLIPBOARD);
+        } catch (final EmptyClipboardException ignored) {
+            // Ignore if there's no clipboard
+        }
+    }
+
+    private void drawSelection(final RegionSelector selector, final Player player, final User user) {
+        try {
+            final Region region = selector.getRegion();
+            final SelectionType selectionType = SelectionType.fromKey(selector.getTypeName());
+            if (selectionType != null) {
+                drawSelection(player, user, region, selectionType, DrawedType.SELECTED);
+            }
+        } catch (final IncompleteRegionException ignored) {
+            // Clear cache if present
+            if (settings.cacheLocations()) {
+                user.clearCache(DrawedType.SELECTED);
             }
         }
     }

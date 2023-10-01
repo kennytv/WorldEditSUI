@@ -50,7 +50,7 @@ public final class PlayerJoinListener implements Listener {
         if (notified.contains(player.getUniqueId())) return;
 
         plugin.runAsync(() -> {
-            if (!plugin.updateAvailable()) return;
+            if (!plugin.checkForLatestVersion()) return;
             if (!player.isOnline()) return;
 
             player.sendMessage(plugin.getPrefix() + "§cThere is a newer version available: §aVersion " + plugin.getNewestVersion() + "§c, you're on §a" + plugin.getDescription().getVersion());

@@ -61,7 +61,7 @@ public final class ParticleData {
 
         final String name = dataType.getSimpleName();
         // they might exist, they might not ¯\_(ツ)_/¯
-        // also it's only executed when (re)loading the config, so I think I might just get away with this method (prolly not worth doing extra modules for this)
+        // also it's only executed when (re)loading the config, so I might just get away with this method (not worth doing extra modules for this)
         if (name.equals("DustOptions")) {
             final float size = (float) section.getDouble("size");
             final Color color = section.contains("rgb") ? Color.fromRGB(section.getInt("rgb"))

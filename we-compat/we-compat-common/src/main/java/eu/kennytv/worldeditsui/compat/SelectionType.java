@@ -31,7 +31,7 @@ public enum SelectionType {
     NONE(null);
 
     private static final Map<String, SelectionType> TYPES = new HashMap<>();
-    private final String key;
+    private final String key; // WE key, hence the inconsistent naming
 
     SelectionType(final String key) {
         this.key = key;

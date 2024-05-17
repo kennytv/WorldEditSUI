@@ -7,7 +7,7 @@
     <groupId>eu.kennytv.worldeditsui</groupId>
     <artifactId>worldedit-sui-parent</artifactId>
     <packaging>pom</packaging>
-    <version>1.7.3-SNAPSHOT</version>
+    <version>1.7.3</version>
 
     <modules>
         <module>worldedit-sui</module>
@@ -53,7 +53,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.5.1</version>
+                <version>3.5.3</version>
                 <configuration>
                     <relocations>
                         <relocation>
@@ -70,6 +70,18 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.4.1</version>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <paperweight-mappings-namespace>mojang</paperweight-mappings-namespace>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
             </plugin>
         </plugins>
         <finalName>${project.name}-${project.version}</finalName>

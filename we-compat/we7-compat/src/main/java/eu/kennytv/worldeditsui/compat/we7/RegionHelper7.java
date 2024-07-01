@@ -35,6 +35,7 @@ import com.sk89q.worldedit.session.ClipboardHolder;
 import eu.kennytv.worldeditsui.compat.RegionHelper;
 import eu.kennytv.worldeditsui.compat.Simple2DVector;
 import eu.kennytv.worldeditsui.compat.SimpleVector;
+import java.util.Locale;
 import org.bukkit.Material;
 
 import java.util.List;
@@ -113,7 +114,7 @@ public final class RegionHelper7 implements RegionHelper {
 
     @Override
     public Material getWand(final WorldEditPlugin plugin) {
-        return Material.getMaterial(plugin.getLocalConfiguration().wandItem.toUpperCase().replace("MINECRAFT:", ""));
+        return Material.getMaterial(plugin.getLocalConfiguration().wandItem.toUpperCase(Locale.ROOT).replace("MINECRAFT:", ""));
     }
 
     @Override

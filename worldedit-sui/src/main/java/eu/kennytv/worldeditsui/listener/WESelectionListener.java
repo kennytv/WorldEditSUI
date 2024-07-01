@@ -22,6 +22,7 @@ import com.google.common.collect.Sets;
 import com.sk89q.worldedit.event.platform.CommandEvent;
 import com.sk89q.worldedit.util.eventbus.Subscribe;
 import eu.kennytv.worldeditsui.WorldEditSUIPlugin;
+import java.util.Locale;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -94,7 +95,7 @@ public final class WESelectionListener implements Listener {
 
         if (arguments.isEmpty()) return;
 
-        final String command = arguments.split(" ", 2)[0].toLowerCase();
+        final String command = arguments.split(" ", 2)[0].toLowerCase(Locale.ROOT);
         if (weCommands.stream().noneMatch(command::equals)) return;
 
         final UUID uuid = event.getActor().getUniqueId();

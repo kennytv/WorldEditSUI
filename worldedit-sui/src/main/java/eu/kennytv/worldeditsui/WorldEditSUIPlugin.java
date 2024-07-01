@@ -169,7 +169,6 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
     }
 
     private void printEnableMessage() {
-        getLogger().info("Plugin by kennytv");
         runAsync(() -> {
             checkForLatestVersion();
             final int compare = version.compareTo(newestVersion);

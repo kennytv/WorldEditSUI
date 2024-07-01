@@ -20,6 +20,7 @@ package eu.kennytv.worldeditsui;
 
 import eu.kennytv.worldeditsui.drawer.base.DrawedType;
 import eu.kennytv.worldeditsui.util.ParticleData;
+import java.util.Locale;
 import org.bukkit.ChatColor;
 import org.bukkit.Particle;
 import org.bukkit.configuration.ConfigurationSection;
@@ -82,7 +83,7 @@ public final class Settings {
 
     public void loadSettings() {
         final YamlConfiguration config = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "config.yml"));
-        wandItem = config.getString("wand", "").toUpperCase().replace("MINECRAFT:", "");
+        wandItem = config.getString("wand", "").toUpperCase(Locale.ROOT).replace("MINECRAFT:", "");
 
         particleViewDistance = config.getInt("particle-viewdistance", 99);
         if (particleViewDistance < 1 || particleViewDistance > 500) {
@@ -206,7 +207,7 @@ public final class Settings {
     }
 
     private ParticleData loadParticle(final ConfigurationSection section, final String s, final Particle defaultParticle) {
-        final String particleName = section.getString(s, defaultParticle.name()).toUpperCase().replace("MINECRAFT:", "");
+        final String particleName = section.getString(s, defaultParticle.name()).toUpperCase(Locale.ROOT).replace("MINECRAFT:", "");
         final Particle particle;
         try {
             particle = Particle.valueOf(particleName);

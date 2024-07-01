@@ -23,6 +23,7 @@ import eu.kennytv.worldeditsui.WorldEditSUIPlugin;
 import eu.kennytv.worldeditsui.compat.ProtectedRegionWrapper;
 import eu.kennytv.worldeditsui.drawer.base.DrawedType;
 import eu.kennytv.worldeditsui.user.User;
+import java.util.Locale;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -49,7 +50,7 @@ public final class WESUICommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(@NotNull final CommandSender sender, @NotNull final Command cmd, @NotNull final String s, @NotNull final String[] args) {
         if (args.length == 1) {
-            final String arg = args[0].toLowerCase();
+            final String arg = args[0].toLowerCase(Locale.ROOT);
             switch (arg) {
                 case "toggle": {
                     if (!(sender instanceof Player)) return true;
@@ -169,7 +170,7 @@ public final class WESUICommand implements CommandExecutor, TabCompleter {
     public List<String> onTabComplete(@NotNull final CommandSender sender, @NotNull final Command cmd, @NotNull final String s, @NotNull final String[] args) {
         if (!sender.hasPermission("wesui.command")) return Collections.emptyList();
         if (args.length == 1) {
-            final String arg = args[0].toLowerCase();
+            final String arg = args[0].toLowerCase(Locale.ROOT);
             final List<String> list = new ArrayList<>();
             checkString(sender, arg, "reload", list);
             checkString(sender, arg, "toggle", list);

@@ -112,11 +112,11 @@ public final class User {
 
     public void clearCaches() {
         if (selectionCache != null) {
-            selectionCache.getVectors().clear();
+            selectionCache.clear();
             selectionCache = null;
         }
         if (selectedWGRegionCache != null) {
-            selectedWGRegionCache.getVectors().clear();
+            selectedWGRegionCache.clear();
             selectedWGRegionCache = null;
         }
     }
@@ -124,7 +124,7 @@ public final class User {
     public void clearCache(final DrawedType drawedType) {
         final SelectionCache oldCache = getSelectionCache(drawedType);
         if (oldCache != null) {
-            oldCache.getVectors().clear();
+            oldCache.clear();
             setSelectionCache(drawedType, null);
         }
     }

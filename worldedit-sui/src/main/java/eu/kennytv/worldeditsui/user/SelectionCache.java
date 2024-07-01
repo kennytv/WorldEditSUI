@@ -26,13 +26,17 @@ import java.util.List;
 
 public final class SelectionCache {
 
-    private final List<SimpleVector> vectors = new ArrayList<>();
+    private List<SimpleVector> vectors = new ArrayList<>();
     private SelectionType selectionType = SelectionType.NONE;
     private SimpleVector minimum;
     private SimpleVector maximum;
 
     public List<SimpleVector> getVectors() {
         return vectors;
+    }
+
+    public void clear() {
+        vectors = new ArrayList<>();
     }
 
     public SelectionType getSelectionType() {

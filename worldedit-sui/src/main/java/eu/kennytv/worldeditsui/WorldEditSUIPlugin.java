@@ -55,6 +55,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Location;
@@ -321,7 +322,8 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
                 if (selectionType == cache.getSelectionType()
                         && cache.getMinimum().equals(minimumPoint) && cache.getMaximum().equals(maximumPoint)) {
                     final Location location = new Location(player.getWorld(), 0, 0, 0);
-                    for (final SimpleVector vector : cache.getVectors()) {
+                    final List<SimpleVector> vectors = cache.getVectors();
+                    for (final SimpleVector vector : vectors) {
                         location.setX(vector.getX());
                         location.setY(vector.getY());
                         location.setZ(vector.getZ());
@@ -339,10 +341,10 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
             }
 
             // If there's a new region, reset the cache and recalculate vectors
+            cache.clear();
             cache.setMinimum(minimumPoint);
             cache.setMaximum(maximumPoint);
             cache.setSelectionType(selectionType);
-            cache.getVectors().clear();
         }
 
         // Current selection

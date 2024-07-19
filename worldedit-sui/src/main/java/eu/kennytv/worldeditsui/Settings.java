@@ -99,8 +99,8 @@ public final class Settings {
         }
 
         particle = loadParticle(config, "particle", Particle.FLAME);
-        clipboardParticle = loadParticle(config, "clipboard-particle", Particle.VILLAGER_HAPPY);
-        wgRegionParticle = loadParticle(config, "wg-region-particle", Particle.VILLAGER_HAPPY);
+        clipboardParticle = loadParticle(config, "clipboard-particle", Particle.END_ROD);
+        wgRegionParticle = loadParticle(config, "wg-region-particle", Particle.END_ROD);
 
         maxPing = Math.max(config.getInt("max-ping"), 0);
         try {
@@ -120,7 +120,7 @@ public final class Settings {
         }
 
         othersParticle = loadParticle(sendToAllSection, "others-particle", Particle.FLAME);
-        othersClipboardParticle = loadParticle(sendToAllSection, "others-clipboard-particle", Particle.VILLAGER_HAPPY);
+        othersClipboardParticle = loadParticle(sendToAllSection, "others-clipboard-particle", Particle.END_ROD);
 
         particlesPerBlock = config.getInt("particles-per-block", 4);
         if (particlesPerBlock < 0.5 || particlesPerBlock > 5) {

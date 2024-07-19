@@ -7,7 +7,7 @@
     <groupId>eu.kennytv.worldeditsui</groupId>
     <artifactId>worldedit-sui-parent</artifactId>
     <packaging>pom</packaging>
-    <version>1.7.4-SNAPSHOT</version>
+    <version>1.7.4</version>
 
     <modules>
         <module>worldedit-sui</module>

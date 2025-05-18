@@ -17,8 +17,9 @@ public final class ParticleViewer {
 
     public void play(final ParticleData particle, final Location location) {
         if (this.location.distanceSquared(location) <= particle.radiusSquared()) {
+            // Force the particle, so that the client doesn't discard it beyond 32 blocks
             player.spawnParticle(this.particle.getParticle(), location, 1,
-                particle.offX(), particle.offY(), particle.offZ(), particle.speed(), this.particle.getData());
+                particle.offX(), particle.offY(), particle.offZ(), particle.speed(), this.particle.getData(), true);
         }
     }
 }

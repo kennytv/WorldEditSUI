@@ -44,33 +44,55 @@ public final class PolygonalDrawer extends DrawerBase {
 
         final Polygonal2DRegion polyRegion = (Polygonal2DRegion) region;
         final Vector2D[] points = plugin.getRegionHelper().getPoints(polyRegion);
-        Vector2D last = points[0];
+        final int length = points.length;
+        // The points are the north-west corners of the boundary columns. Shift each point
+        // so that lines go around the blocks instead of into them
+        final double[] xs = new double[length];
+        final double[] zs = new double[length];
+        computeOutlineCorners(points, xs, zs);
+
         final int bottom = ((FlatRegion) region).getMinimumY();
-        final Location location = new Location(player.getWorld(), last.getX(), bottom, last.getZ());
         final int height = region.getHeight();
         final int top = bottom + height;
         final int upwardsTicks = height * settings.getParticlesPerBlock();
-        boolean skip = true;
-        for (final Vector2D point : points) {
-            if (skip) {
-                skip = false;
-                continue;
-            }
-
-            connect(context, point.subtract(last), bottom, top, upwardsTicks, location);
-            last = point;
-            // Just to avoid minor inaccuracy because of double -> int parsing
-            location.setX(point.getX());
-            location.setZ(point.getZ());
+        final Location location = new Location(player.getWorld(), xs[0], bottom, zs[0]);
+        for (int i = 1; i <= length; i++) {
+            final int index = i % length;
+            connect(context, xs[index] - xs[i - 1], zs[index] - zs[i - 1], bottom, top, upwardsTicks, location);
+            // Just to avoid minor inaccuracy because of the repeated additions
+            location.setX(xs[index]);
+            location.setZ(zs[index]);
         }
-        connect(context, points[0].subtract(points[points.length - 1]), bottom, top, upwardsTicks, location);
     }
 
-    private void connect(final DrawContext context, final Vector2D vector, final int bottom, final int top, final int upwardsTicks, final Location location) {
-        final double length = vector.length();
+    private void computeOutlineCorners(final Vector2D[] points, final double[] xs, final double[] zs) {
+        final int length = points.length;
+        // Shoelace formula to determine the polygon's winding order
+        double area = 0;
+        for (int i = 0; i < length; i++) {
+            final Vector2D current = points[i];
+            final Vector2D next = points[(i + 1) % length];
+            area += current.getX() * next.getZ() - next.getX() * current.getZ();
+        }
+
+        final int sign = area > 0 ? 1 : -1;
+        for (int i = 0; i < length; i++) {
+            final Vector2D previous = points[(i + length - 1) % length];
+            final Vector2D next = points[(i + 1) % length];
+            // The sum of the two adjacent edge vectors is next-previous; its outward
+            // perpendicular decides per axis whether the outer block corner is at +1
+            final double outX = sign * (next.getZ() - previous.getZ());
+            final double outZ = sign * (previous.getX() - next.getX());
+            xs[i] = points[i].getX() + (outX > 0 ? 1 : 0);
+            zs[i] = points[i].getZ() + (outZ > 0 ? 1 : 0);
+        }
+    }
+
+    private void connect(final DrawContext context, final double deltaX, final double deltaZ, final int bottom, final int top, final int upwardsTicks, final Location location) {
+        final double length = Math.sqrt(deltaX * deltaX + deltaZ * deltaZ);
         final double factor = length * settings.getParticlesPerBlock();
-        final double x = vector.getX() / factor;
-        final double z = vector.getZ() / factor;
+        final double x = deltaX / factor;
+        final double z = deltaZ / factor;
         final int ticks = (int) factor;
 
         for (int i = 0; i < ticks; i++) {

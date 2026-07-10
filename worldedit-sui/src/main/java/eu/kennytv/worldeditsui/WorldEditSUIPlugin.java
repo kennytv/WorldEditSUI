@@ -26,6 +26,7 @@ import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.math.transform.Transform;
 import com.sk89q.worldedit.regions.ConvexPolyhedralRegion;
+import com.sk89q.worldedit.regions.Polygonal2DRegion;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.regions.RegionSelector;
 import com.sk89q.worldedit.session.ClipboardHolder;
@@ -71,7 +72,6 @@ import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 public final class WorldEditSUIPlugin extends JavaPlugin {
 
     private static final boolean FOLIA = hasClass("io.papermc.paper.threadedregions.scheduler.EntityScheduler");
-    private static final String PREFIX = "§8[§eWorldEditSUI§8] ";
     private final AtomicBoolean updatingSelections = new AtomicBoolean();
     private RegionHelper regionHelper;
     private ProtectedRegionHelper protectedRegionHelper;
@@ -348,8 +348,7 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
         if (settings.cacheLocations()) {
             final Vector3D minimumPoint = regionHelper.getMinimumPoint(region);
             final Vector3D maximumPoint = regionHelper.getMaximumPoint(region);
-            // A polyhedron's shape can change without its area changing
-            final int shapeKey = selectionType == SelectionType.POLYHEDRON ? regionHelper.getTriangleCount((ConvexPolyhedralRegion) region) : 0;
+            final int shapeKey = shapeKey(region, selectionType);
             SelectionCache cache = user.getSelectionCache(drawedType);
             if (cache != null) {
                 if (selectionType == cache.getSelectionType() && shapeKey == cache.getShapeKey()
@@ -379,6 +378,18 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
         drawManager.getDrawer(selectionType).draw(player, region, drawedType);
     }
 
+    /**
+     * @return additional cache compare value for regions that can change shape without their bounding box changing
+     */
+    private int shapeKey(final Region region, final SelectionType selectionType) {
+        if (selectionType == SelectionType.POLYHEDRON) {
+            return regionHelper.getTriangleCount((ConvexPolyhedralRegion) region);
+        } else if (selectionType == SelectionType.POLYGON) {
+            return ((Polygonal2DRegion) region).getPoints().hashCode();
+        }
+        return 0;
+    }
+
     public WorldEditPlugin getWorldEditPlugin() {
         return worldEditPlugin;
     }
@@ -393,10 +404,6 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
 
     public Settings getSettings() {
         return settings;
-    }
-
-    public String getPrefix() {
-        return PREFIX;
     }
 
     public Version getVersion() {

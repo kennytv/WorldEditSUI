@@ -22,7 +22,8 @@ import com.sk89q.worldedit.regions.FlatRegion;
 import com.sk89q.worldedit.regions.Polygonal2DRegion;
 import com.sk89q.worldedit.regions.Region;
 import eu.kennytv.worldeditsui.WorldEditSUIPlugin;
-import eu.kennytv.worldeditsui.compat.Simple2DVector;
+import eu.kennytv.worldeditsui.compat.Vector2D;
+import eu.kennytv.worldeditsui.drawer.base.DrawContext;
 import eu.kennytv.worldeditsui.drawer.base.DrawedType;
 import eu.kennytv.worldeditsui.drawer.base.DrawerBase;
 import org.bukkit.Location;
@@ -38,31 +39,34 @@ public final class PolygonalDrawer extends DrawerBase {
     public void draw(final Player player, final Region region, final DrawedType drawedType) {
         if (!hasValidSize(player, region)) return;
 
+        final DrawContext context = createContext(player, region, drawedType);
+        if (context == null) return;
+
         final Polygonal2DRegion polyRegion = (Polygonal2DRegion) region;
-        final Simple2DVector[] points = plugin.getRegionHelper().getPoints(polyRegion);
-        Simple2DVector last = points[0];
+        final Vector2D[] points = plugin.getRegionHelper().getPoints(polyRegion);
+        Vector2D last = points[0];
         final int bottom = ((FlatRegion) region).getMinimumY();
         final Location location = new Location(player.getWorld(), last.getX(), bottom, last.getZ());
         final int height = region.getHeight();
         final int top = bottom + height;
         final int upwardsTicks = height * settings.getParticlesPerBlock();
         boolean skip = true;
-        for (final Simple2DVector point : points) {
+        for (final Vector2D point : points) {
             if (skip) {
                 skip = false;
                 continue;
             }
 
-            connect(point.subtract(last), bottom, top, upwardsTicks, location, player);
+            connect(context, point.subtract(last), bottom, top, upwardsTicks, location);
             last = point;
             // Just to avoid minor inaccuracy because of double -> int parsing
             location.setX(point.getX());
             location.setZ(point.getZ());
         }
-        connect(points[0].subtract(points[points.length - 1]), bottom, top, upwardsTicks, location, player);
+        connect(context, points[0].subtract(points[points.length - 1]), bottom, top, upwardsTicks, location);
     }
 
-    private void connect(final Simple2DVector vector, final int bottom, final int top, final int upwardsTicks, final Location location, final Player player) {
+    private void connect(final DrawContext context, final Vector2D vector, final int bottom, final int top, final int upwardsTicks, final Location location) {
         final double length = vector.length();
         final double factor = length * settings.getParticlesPerBlock();
         final double x = vector.getX() / factor;
@@ -70,14 +74,14 @@ public final class PolygonalDrawer extends DrawerBase {
         final int ticks = (int) factor;
 
         for (int i = 0; i < ticks; i++) {
-            playEffect(location.add(x, 0, z), player);
+            context.playEffect(location.add(x, 0, z));
             location.setY(top);
-            playEffect(location, player);
+            context.playEffect(location);
             location.setY(bottom);
         }
         for (int j = 1; j < upwardsTicks; j++) {
             location.setY(location.getY() + settings.getParticleSpace());
-            playEffect(location, player);
+            context.playEffect(location);
         }
         location.setY(bottom);
     }

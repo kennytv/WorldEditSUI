@@ -20,74 +20,76 @@ package eu.kennytv.worldeditsui.compat.we6;
 
 import com.sk89q.worldedit.BlockVector2D;
 import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.Vector2D;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.math.transform.Transform;
+import com.sk89q.worldedit.regions.ConvexPolyhedralRegion;
 import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.regions.CylinderRegion;
 import com.sk89q.worldedit.regions.EllipsoidRegion;
 import com.sk89q.worldedit.regions.Polygonal2DRegion;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.regions.RegionOperationException;
+import com.sk89q.worldedit.regions.polyhedron.Triangle;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import eu.kennytv.worldeditsui.compat.RegionHelper;
-import eu.kennytv.worldeditsui.compat.Simple2DVector;
-import eu.kennytv.worldeditsui.compat.SimpleVector;
+import eu.kennytv.worldeditsui.compat.Vector2D;
+import eu.kennytv.worldeditsui.compat.Vector3D;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.Collection;
 import java.util.List;
 
 public final class RegionHelper6 implements RegionHelper {
 
     @Override
-    public SimpleVector getRadius(final EllipsoidRegion region) {
+    public Vector3D getRadius(final EllipsoidRegion region) {
         final Vector radius = region.getRadius();
-        return new SimpleVector(radius.getX(), radius.getY(), radius.getZ());
+        return new Vector3D(radius.getX(), radius.getY(), radius.getZ());
     }
 
     @Override
-    public SimpleVector getRadius(final EllipsoidRegion region, final double offX, final double offY, final double offZ) {
+    public Vector3D getRadius(final EllipsoidRegion region, final double offX, final double offY, final double offZ) {
         final Vector radius = region.getRadius();
-        return new SimpleVector(radius.getX() + offX, radius.getY() + offY, radius.getZ() + offZ);
+        return new Vector3D(radius.getX() + offX, radius.getY() + offY, radius.getZ() + offZ);
     }
 
     @Override
-    public SimpleVector getRadius(final CylinderRegion region, final double offX, final double offZ) {
-        final Vector2D radius = region.getRadius();
-        return new SimpleVector(radius.getX() + offX, region.getHeight(), radius.getZ() + offZ);
+    public Vector3D getRadius(final CylinderRegion region, final double offX, final double offZ) {
+        final com.sk89q.worldedit.Vector2D radius = region.getRadius();
+        return new Vector3D(radius.getX() + offX, region.getHeight(), radius.getZ() + offZ);
     }
 
 
     @Override
-    public SimpleVector getCenter(final Region region) {
+    public Vector3D getCenter(final Region region) {
         final Vector center = region.getCenter();
-        return new SimpleVector(center.getX(), center.getY(), center.getZ());
+        return new Vector3D(center.getX(), center.getY(), center.getZ());
     }
 
     @Override
-    public SimpleVector getCenter(final Region region, final double offX, final double offY, final double offZ) {
+    public Vector3D getCenter(final Region region, final double offX, final double offY, final double offZ) {
         final Vector center = region.getCenter();
-        return new SimpleVector(center.getX() + offX, center.getY() + offY, center.getZ() + offZ);
+        return new Vector3D(center.getX() + offX, center.getY() + offY, center.getZ() + offZ);
     }
 
     @Override
-    public SimpleVector getMinimumPoint(final Region region) {
+    public Vector3D getMinimumPoint(final Region region) {
         final Vector minimum = region.getMinimumPoint();
-        return new SimpleVector(minimum.getX(), minimum.getY(), minimum.getZ());
+        return new Vector3D(minimum.getX(), minimum.getY(), minimum.getZ());
     }
 
     @Override
-    public SimpleVector getMaximumPoint(final Region region) {
+    public Vector3D getMaximumPoint(final Region region) {
         final Vector maximum = region.getMaximumPoint();
-        return new SimpleVector(maximum.getX(), maximum.getY(), maximum.getZ());
+        return new Vector3D(maximum.getX(), maximum.getY(), maximum.getZ());
     }
 
     @Override
-    public SimpleVector getOrigin(final Clipboard clipboard) {
+    public Vector3D getOrigin(final Clipboard clipboard) {
         final Vector origin = clipboard.getOrigin();
-        return new SimpleVector(origin.getX(), origin.getY(), origin.getZ());
+        return new Vector3D(origin.getX(), origin.getY(), origin.getZ());
     }
 
     @Override
@@ -117,13 +119,34 @@ public final class RegionHelper6 implements RegionHelper {
     }
 
     @Override
-    public Simple2DVector[] getPoints(final Polygonal2DRegion region) {
+    public Vector2D[] getPoints(final Polygonal2DRegion region) {
         final List<BlockVector2D> originalVectors = region.polygonize(-1);
-        final Simple2DVector[] vectors = new Simple2DVector[originalVectors.size()];
+        final Vector2D[] vectors = new Vector2D[originalVectors.size()];
         int i = 0;
         for (final BlockVector2D vector : originalVectors) {
-            vectors[i++] = new Simple2DVector(vector.getX(), vector.getZ());
+            vectors[i++] = new Vector2D(vector.getX(), vector.getZ());
         }
         return vectors;
+    }
+
+    @Override
+    public Vector3D[][] getTriangles(final ConvexPolyhedralRegion region) {
+        final Collection<Triangle> originalTriangles = region.getTriangles();
+        final Vector3D[][] triangles = new Vector3D[originalTriangles.size()][];
+        int i = 0;
+        for (final Triangle triangle : originalTriangles) {
+            final Vector3D[] vertices = new Vector3D[3];
+            for (int j = 0; j < 3; j++) {
+                final Vector vertex = triangle.getVertex(j);
+                vertices[j] = new Vector3D(vertex.getX(), vertex.getY(), vertex.getZ());
+            }
+            triangles[i++] = vertices;
+        }
+        return triangles;
+    }
+
+    @Override
+    public int getTriangleCount(final ConvexPolyhedralRegion region) {
+        return region.getTriangles().size();
     }
 }

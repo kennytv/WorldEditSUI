@@ -20,9 +20,8 @@ package eu.kennytv.worldeditsui.user;
 
 import eu.kennytv.worldeditsui.compat.ProtectedRegionWrapper;
 import eu.kennytv.worldeditsui.drawer.base.DrawedType;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.UUID;
+import org.jetbrains.annotations.Nullable;
 
 public final class User {
 

@@ -19,24 +19,27 @@
 package eu.kennytv.worldeditsui.user;
 
 import eu.kennytv.worldeditsui.compat.SelectionType;
-import eu.kennytv.worldeditsui.compat.SimpleVector;
-
-import java.util.ArrayList;
-import java.util.List;
+import eu.kennytv.worldeditsui.compat.Vector3D;
+import eu.kennytv.worldeditsui.util.ParticleSender;
+import java.util.Arrays;
+import org.bukkit.Location;
+import org.bukkit.World;
 
 public final class SelectionCache {
 
-    private List<SimpleVector> vectors = new ArrayList<>();
+    private Positions positions = new Positions();
     private SelectionType selectionType = SelectionType.NONE;
-    private SimpleVector minimum;
-    private SimpleVector maximum;
+    private Vector3D min;
+    private Vector3D max;
+    private int shapeKey;
 
-    public List<SimpleVector> getVectors() {
-        return vectors;
+    public Positions getPositions() {
+        return positions;
     }
 
     public void clear() {
-        vectors = new ArrayList<>();
+        // Change reference, other threads might be using the old
+        positions = new Positions();
     }
 
     public SelectionType getSelectionType() {
@@ -47,19 +50,57 @@ public final class SelectionCache {
         this.selectionType = selectionType;
     }
 
-    public SimpleVector getMinimum() {
-        return minimum;
+    public Vector3D getMinimum() {
+        return min;
     }
 
-    public void setMinimum(final SimpleVector minimum) {
-        this.minimum = minimum;
+    public void setMinimum(final Vector3D minimum) {
+        this.min = minimum;
     }
 
-    public SimpleVector getMaximum() {
-        return maximum;
+    public Vector3D getMaximum() {
+        return max;
     }
 
-    public void setMaximum(final SimpleVector maximum) {
-        this.maximum = maximum;
+    public void setMaximum(final Vector3D maximum) {
+        this.max = maximum;
+    }
+
+    /**
+     * @return additional compare value for regions whose shape can change without their bounding box changing
+     */
+    public int getShapeKey() {
+        return shapeKey;
+    }
+
+    public void setShapeKey(final int shapeKey) {
+        this.shapeKey = shapeKey;
+    }
+
+    public static final class Positions {
+
+        private static final int TRIPLET_SIZE = 3;
+        private double[] data = new double[192]; // stored as flat x/y/z triplets to avoid extra allocation
+        private int size;
+
+        public void add(final double x, final double y, final double z) {
+            if (size + TRIPLET_SIZE > data.length) {
+                data = Arrays.copyOf(data, data.length * 2);
+            }
+            data[size] = x;
+            data[size + 1] = y;
+            data[size + 2] = z;
+            size += TRIPLET_SIZE;
+        }
+
+        public void play(final World world, final ParticleSender sender) {
+            final Location location = new Location(world, 0, 0, 0);
+            for (int i = 0, length = size; i < length; i += 3) {
+                location.setX(data[i]);
+                location.setY(data[i + 1]);
+                location.setZ(data[i + 2]);
+                sender.play(location);
+            }
+        }
     }
 }

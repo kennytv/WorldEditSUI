@@ -25,6 +25,7 @@ import com.sk89q.worldedit.bukkit.BukkitWorld;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.math.transform.Transform;
+import com.sk89q.worldedit.regions.ConvexPolyhedralRegion;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.regions.RegionSelector;
 import com.sk89q.worldedit.session.ClipboardHolder;
@@ -33,7 +34,7 @@ import eu.kennytv.worldeditsui.compat.ProtectedRegionHelper;
 import eu.kennytv.worldeditsui.compat.ProtectedRegionWrapper;
 import eu.kennytv.worldeditsui.compat.RegionHelper;
 import eu.kennytv.worldeditsui.compat.SelectionType;
-import eu.kennytv.worldeditsui.compat.SimpleVector;
+import eu.kennytv.worldeditsui.compat.Vector3D;
 import eu.kennytv.worldeditsui.compat.we6.ProtectedRegionHelper6;
 import eu.kennytv.worldeditsui.compat.we6.RegionHelper6;
 import eu.kennytv.worldeditsui.compat.we7.ProtectedRegionHelper7;
@@ -49,13 +50,14 @@ import eu.kennytv.worldeditsui.user.UserManager;
 import eu.kennytv.worldeditsui.util.Cancellable;
 import eu.kennytv.worldeditsui.util.CancellableBukkitTask;
 import eu.kennytv.worldeditsui.util.CancellableScheduledTask;
+import eu.kennytv.worldeditsui.util.ParticleData;
 import eu.kennytv.worldeditsui.util.ParticleHelper;
+import eu.kennytv.worldeditsui.util.ParticleSender;
 import eu.kennytv.worldeditsui.util.Version;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Location;
@@ -232,7 +234,10 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
 
             user.setExpireTimestamp(0);
             if (settings.hasExpireMessage()) {
-                getServer().getPlayer(user.getUuid()).sendMessage(settings.getMessage("idled"));
+                final Player player = getServer().getPlayer(user.getUuid());
+                if (player != null) {
+                    player.sendMessage(settings.getMessage("idled"));
+                }
             }
         }
     }
@@ -250,19 +255,22 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
 
             // Check for sending restrictions
             if (!user.isSelectionShown() && !user.isClipboardShown()
-                    || settings.isExpiryEnabled() && user.getExpireTimestamp() == 0
-                    || settings.getPermission() != null && !player.hasPermission(settings.getPermission())
-                    || settings.getMaxPing() != 0 && player.spigot().getPing() > settings.getMaxPing()) {
+                || settings.isExpiryEnabled() && user.getExpireTimestamp() == 0
+                || settings.getPermission() != null && !player.hasPermission(settings.getPermission())
+                || settings.getMaxPing() != 0 && player.spigot().getPing() > settings.getMaxPing()) {
                 continue;
             }
 
-            final LocalSession session = worldEditPlugin.getSession(player);
-            final RegionSelector selector = session.getRegionSelector(new BukkitWorld(player.getWorld()));
-
-            // Selected WorldGuard region
+            // Selected WorldGuard region (does not require a WorldEdit session)
             final ProtectedRegionWrapper selectedWGRegion = user.getSelectedWGRegion();
             if (selectedWGRegion != null) {
                 drawSelection(player, user, selectedWGRegion.getRegion(), selectedWGRegion.getSelectionType(), DrawedType.WG_REGION);
+            }
+
+            // Don't create sessions for players that have never used WorldEdit
+            final LocalSession session = worldEditPlugin.getWorldEdit().getSessionManager().getIfPresent(worldEditPlugin.wrapPlayer(player));
+            if (session == null) {
+                continue;
             }
 
             // Clipboard
@@ -272,7 +280,7 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
 
             // Selection
             if (user.isSelectionShown()) {
-                drawSelection(selector, player, user);
+                drawSelection(session.getRegionSelector(new BukkitWorld(player.getWorld())), player, user);
             }
         }
     }
@@ -282,7 +290,7 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
             final ClipboardHolder holder = session.getClipboard();
             final Clipboard clipboard = holder.getClipboard();
             final Location location = player.getLocation();
-            final SimpleVector origin = regionHelper.getOrigin(clipboard);
+            final Vector3D origin = regionHelper.getOrigin(clipboard);
 
             // Transform the clipboard if necessary
             final Transform transform = holder.getTransform();
@@ -290,7 +298,7 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
 
             // Shift the transformed region relative to the player
             final Region shiftedRegion = regionHelper.shift(region,
-                    location.getBlockX() - origin.getX(), location.getBlockY() - origin.getY(), location.getBlockZ() - origin.getZ());
+                location.getBlockX() - origin.getX(), location.getBlockY() - origin.getY(), location.getBlockZ() - origin.getZ());
             drawManager.getDrawer(SelectionType.CUBOID).draw(player, shiftedRegion, DrawedType.CLIPBOARD);
         } catch (final EmptyClipboardException ignored) {
             // Ignore if there's no clipboard
@@ -298,6 +306,15 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
     }
 
     private void drawSelection(final RegionSelector selector, final Player player, final User user) {
+        // Don't let WorldEdit throw an exception for incomplete selections every batch
+        if (!selector.isDefined()) {
+            // Clear cache if present
+            if (settings.cacheLocations()) {
+                user.clearCache(DrawedType.SELECTED);
+            }
+            return;
+        }
+
         try {
             final Region region = selector.getRegion();
             final SelectionType selectionType = SelectionType.fromKey(selector.getTypeName());
@@ -314,23 +331,19 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
 
     private void drawSelection(final Player player, final User user, final Region region, final SelectionType selectionType, final DrawedType drawedType) {
         if (settings.cacheLocations()) {
-            final SimpleVector minimumPoint = regionHelper.getMinimumPoint(region);
-            final SimpleVector maximumPoint = regionHelper.getMaximumPoint(region);
+            final Vector3D minimumPoint = regionHelper.getMinimumPoint(region);
+            final Vector3D maximumPoint = regionHelper.getMaximumPoint(region);
+            // A polyhedron's shape can change without its area changing
+            final int shapeKey = selectionType == SelectionType.POLYHEDRON ? regionHelper.getTriangleCount((ConvexPolyhedralRegion) region) : 0;
             SelectionCache cache = user.getSelectionCache(drawedType);
             if (cache != null) {
-                if (selectionType == cache.getSelectionType()
-                        && cache.getMinimum().equals(minimumPoint) && cache.getMaximum().equals(maximumPoint)) {
-                    final Location location = new Location(player.getWorld(), 0, 0, 0);
-                    final List<SimpleVector> vectors = cache.getVectors();
-                    for (final SimpleVector vector : vectors) {
-                        location.setX(vector.getX());
-                        location.setY(vector.getY());
-                        location.setZ(vector.getZ());
-                        if (settings.sendParticlesToAll(drawedType)) {
-                            particleHelper.playEffectToAll(settings.getParticle(drawedType), settings.getOthersParticle(drawedType), location, player);
-                        } else {
-                            particleHelper.playEffect(settings.getParticle(drawedType), location, player);
-                        }
+                if (selectionType == cache.getSelectionType() && shapeKey == cache.getShapeKey()
+                    && cache.getMinimum().equals(minimumPoint) && cache.getMaximum().equals(maximumPoint)) {
+                    final SelectionCache.Positions positions = cache.getPositions();
+                    final ParticleData othersParticle = settings.sendParticlesToAll(drawedType) ? settings.getOthersParticle(drawedType) : null;
+                    final ParticleSender sender = particleHelper.createSender(settings.getParticle(drawedType), othersParticle, player, minimumPoint, maximumPoint);
+                    if (sender.hasViewers()) {
+                        positions.play(player.getWorld(), sender);
                     }
                     return;
                 }
@@ -344,6 +357,7 @@ public final class WorldEditSUIPlugin extends JavaPlugin {
             cache.setMinimum(minimumPoint);
             cache.setMaximum(maximumPoint);
             cache.setSelectionType(selectionType);
+            cache.setShapeKey(shapeKey);
         }
 
         // Current selection

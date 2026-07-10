@@ -58,16 +58,16 @@ public final class PlayerJoinListener implements Listener {
 
             try {
                 final TextComponent tc1 = new TextComponent(TextComponent.fromLegacyText(plugin.getPrefix()));
-                final TextComponent tc2 = new TextComponent(TextComponent.fromLegacyText("§cDownload it at: §6https://www.spigotmc.org/resources/worldeditsui.60726/"));
+                final TextComponent tc2 = new TextComponent(TextComponent.fromLegacyText("§cDownload it at: §6https://hangar.papermc.io/kennytv/WorldEditSUI"));
                 final TextComponent click = new TextComponent(TextComponent.fromLegacyText(" §7§l§o(CLICK ME)"));
-                click.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://www.spigotmc.org/resources/worldeditsui.60726/"));
+                click.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://hangar.papermc.io/kennytv/WorldEditSUI"));
                 click.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("§aDownload the latest version").create()));
                 tc1.addExtra(tc2);
                 tc1.addExtra(click);
 
                 player.spigot().sendMessage(tc1);
             } catch (final Exception e) {
-                player.sendMessage(plugin.getPrefix() + "§cDownload it at: §6https://www.spigotmc.org/resources/worldeditsui.60726/");
+                player.sendMessage(plugin.getPrefix() + "§cDownload it at: §6https://hangar.papermc.io/kennytv/WorldEditSUI");
             }
         });
     }

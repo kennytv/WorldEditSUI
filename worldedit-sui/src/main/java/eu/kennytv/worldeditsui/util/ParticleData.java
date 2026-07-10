@@ -65,7 +65,7 @@ public final class ParticleData {
         if (name.equals("DustOptions")) {
             final float size = (float) section.getDouble("size");
             final Color color = section.contains("rgb") ? Color.fromRGB(section.getInt("rgb"))
-                    : Color.fromRGB(section.getInt("r"), section.getInt("g"), section.getInt("b"));
+                : Color.fromRGB(section.getInt("r"), section.getInt("g"), section.getInt("b"));
             return new Particle.DustOptions(color, size);
         } else if (name.equals("BlockData")) {
             final Material material = Material.getMaterial(section.getString("material"));
@@ -77,7 +77,7 @@ public final class ParticleData {
             return new MaterialData(Material.getMaterial(section.getString("material")), (byte) section.getInt("data"));
         } else if (dataType == Color.class) {
             return section.contains("rgb") ? Color.fromRGB(section.getInt("rgb"))
-                    : Color.fromRGB(section.getInt("r"), section.getInt("g"), section.getInt("b"));
+                : Color.fromRGB(section.getInt("r"), section.getInt("g"), section.getInt("b"));
         }
 
         throw new IllegalArgumentException("The datatype " + name + " is not yet supported by the plugin - please report this error!");

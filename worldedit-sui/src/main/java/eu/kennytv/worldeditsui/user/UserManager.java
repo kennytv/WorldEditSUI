@@ -19,15 +19,14 @@
 package eu.kennytv.worldeditsui.user;
 
 import eu.kennytv.worldeditsui.Settings;
-import org.bukkit.entity.Player;
-
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import org.bukkit.entity.Player;
 
 public final class UserManager {
 
-    private final Map<UUID, User> users = new HashMap<>();
+    private final Map<UUID, User> users = new ConcurrentHashMap<>();
     private final Settings settings;
 
     public UserManager(final Settings settings) {

@@ -33,6 +33,11 @@ import org.bukkit.event.player.PlayerJoinEvent;
 
 public final class PlayerJoinListener implements Listener {
 
+    private static final String DOWNLOAD_URL = "https://hangar.papermc.io/kennytv/WorldEditSUI";
+    // Inherited from Adventure's Audience on Paper servers, taking a MiniMessage string
+    private static final boolean RICH_MESSAGES_AVAILABLE = hasSendRichMessage();
+    private static final String LEGACY_PREFIX = "§8[§eWorldEditSUI§8] ";
+    private static final String RICH_PREFIX = "<dark_gray>[<yellow>WorldEditSUI</yellow>]</dark_gray> ";
     private final Set<UUID> notified = new HashSet<>();
     private final WorldEditSUIPlugin plugin;
 
@@ -40,6 +45,7 @@ public final class PlayerJoinListener implements Listener {
         this.plugin = plugin;
     }
 
+    @SuppressWarnings("deprecation")
     @EventHandler
     public void playerJoin(final PlayerJoinEvent event) {
         final Player player = event.getPlayer();
@@ -53,22 +59,42 @@ public final class PlayerJoinListener implements Listener {
             if (!plugin.checkForLatestVersion()) return;
             if (!player.isOnline()) return;
 
-            player.sendMessage(plugin.getPrefix() + "§cThere is a newer version available: §aVersion " + plugin.getNewestVersion() + "§c, you're on §a" + plugin.getDescription().getVersion());
             notified.add(player.getUniqueId());
 
+            if (RICH_MESSAGES_AVAILABLE) {
+                // I *think* there was a minimessage version that really didn't like not having closing tags
+                player.sendRichMessage(RICH_PREFIX + "<red>There is a newer version available: <green>Version " + plugin.getNewestVersion()
+                    + "</green>, you're on <green>" + plugin.getDescription().getVersion() + "</green>");
+                player.sendRichMessage(RICH_PREFIX + "<red>Download it at: " +
+                    "<click:open_url:'" + DOWNLOAD_URL + "'><hover:show_text:'<green>Download the latest version'>" +
+                    "<gold>" + DOWNLOAD_URL + "</gold> <gray><b><i>(CLICK ME)</i></b></gray></hover></click>");
+                return;
+            }
+
+            player.sendMessage(LEGACY_PREFIX + "§cThere is a newer version available: §aVersion " + plugin.getNewestVersion() + "§c, you're on §a" + plugin.getDescription().getVersion());
+
             try {
-                final TextComponent tc1 = new TextComponent(TextComponent.fromLegacyText(plugin.getPrefix()));
-                final TextComponent tc2 = new TextComponent(TextComponent.fromLegacyText("§cDownload it at: §6https://hangar.papermc.io/kennytv/WorldEditSUI"));
+                final TextComponent tc1 = new TextComponent(TextComponent.fromLegacyText(LEGACY_PREFIX));
+                final TextComponent tc2 = new TextComponent(TextComponent.fromLegacyText("§cDownload it at: §6" + DOWNLOAD_URL));
                 final TextComponent click = new TextComponent(TextComponent.fromLegacyText(" §7§l§o(CLICK ME)"));
-                click.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://hangar.papermc.io/kennytv/WorldEditSUI"));
+                click.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, DOWNLOAD_URL));
                 click.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("§aDownload the latest version").create()));
                 tc1.addExtra(tc2);
                 tc1.addExtra(click);
 
                 player.spigot().sendMessage(tc1);
             } catch (final Exception e) {
-                player.sendMessage(plugin.getPrefix() + "§cDownload it at: §6https://hangar.papermc.io/kennytv/WorldEditSUI");
+                player.sendMessage(LEGACY_PREFIX + "§cDownload it at: §6" + DOWNLOAD_URL);
             }
         });
+    }
+
+    private static boolean hasSendRichMessage() {
+        try {
+            Player.class.getMethod("sendRichMessage", String.class);
+            return true;
+        } catch (final NoSuchMethodException e) {
+            return false;
+        }
     }
 }

@@ -20,14 +20,6 @@ package eu.kennytv.worldeditsui;
 
 import eu.kennytv.worldeditsui.drawer.base.DrawedType;
 import eu.kennytv.worldeditsui.util.ParticleData;
-import java.util.Locale;
-import org.bukkit.ChatColor;
-import org.bukkit.Particle;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.Player;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -36,6 +28,13 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.Locale;
+import org.bukkit.ChatColor;
+import org.bukkit.Particle;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
+import org.jetbrains.annotations.Nullable;
 
 public final class Settings {
 
@@ -88,12 +87,12 @@ public final class Settings {
         particleViewDistance = config.getInt("particle-viewdistance", 99);
         if (particleViewDistance < 1 || particleViewDistance > 500) {
             plugin.getLogger().warning("To punish you for your deeds of setting the particle viewdistance to an astonishing "
-                    + particleViewDistance + ", it has been set to 2 blocks.");
+                + particleViewDistance + ", it has been set to 2 blocks.");
             plugin.getLogger().warning("Also, this puppy just died.\n"
-                    + "      __\n" +
-                    " (___()'`;\n" +
-                    " /,    /`\n" +
-                    " \\\\\"--\\\\");
+                + "      __\n" +
+                " (___()'`;\n" +
+                " /,    /`\n" +
+                " \\\\\"--\\\\");
             plugin.getLogger().warning("Is this what you wanted?");
             particleViewDistance = 2;
         }
@@ -137,11 +136,11 @@ public final class Settings {
 
         final ConfigurationSection clipboardGridSection = config.getConfigurationSection("advanced-clipboard-grid");
         advancedClipboardGrid = clipboardGridSection != null && clipboardGridSection.getBoolean("enabled", false) ?
-                new GridSettings(plugin, clipboardGridSection) : null;
+            new GridSettings(plugin, clipboardGridSection) : null;
 
         final ConfigurationSection wgRegionGridSection = config.getConfigurationSection("advanced-wg-region-grid");
         advancedWGRegionGrid = wgRegionGridSection != null && wgRegionGridSection.getBoolean("enabled", false) ?
-                new GridSettings(plugin, wgRegionGridSection) : null;
+            new GridSettings(plugin, wgRegionGridSection) : null;
 
         particleSendInterval = config.getInt("particle-send-interval", 12);
         if (particleSendInterval < 5 || particleSendInterval > 200) {
@@ -233,7 +232,7 @@ public final class Settings {
         try {
             return new ParticleData(particle, radius, speed, offX, offY, offZ, ParticleData.getExtraData(particle, particleSection));
         } catch (final Exception e) {
-            plugin.getLogger().warning("Error loading particle data of " + particleName + " - Missing data? You may read up on how to correctly set its data at the bottom of the plugin's Spigot page.");
+            plugin.getLogger().warning("Error loading particle data of " + particleName + " - Missing data? You may read up on how to correctly set its data at the bottom of the plugin page.");
             plugin.getLogger().warning("Falling back to default particle: " + defaultParticle);
             e.printStackTrace();
             return new ParticleData(particle, particleViewDistance);

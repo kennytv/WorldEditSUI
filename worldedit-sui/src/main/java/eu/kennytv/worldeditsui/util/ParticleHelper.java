@@ -19,39 +19,70 @@
 package eu.kennytv.worldeditsui.util;
 
 import eu.kennytv.worldeditsui.Settings;
+import eu.kennytv.worldeditsui.compat.Vector3D;
+import java.util.ArrayList;
+import java.util.List;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.Nullable;
 
 public final class ParticleHelper {
 
+    // Drawers place some particles slightly outside of the region's bounds (e.g. ellipsoid radius offsets)
+    private static final double BOUNDS_MARGIN = 5;
     private final Settings settings;
 
     public ParticleHelper(final Settings settings) {
         this.settings = settings;
     }
 
-    public void playEffect(final ParticleData particle, final Location location, final Player player) {
-        if (!location.getWorld().equals(player.getWorld())) return;
+    public ParticleSender createSender(final ParticleData particle, @Nullable final ParticleData othersParticle,
+                                       final Player origin, final Vector3D minimum, final Vector3D maximum) {
+        // Collect viewers of a draw batch once; filter out players out-of-range.
+        final int radiusSquared = particle.radiusSquared();
+        if (othersParticle == null) {
+            final Location location = origin.getLocation();
+            if (!isNear(location, radiusSquared, minimum, maximum)) {
+                return ParticleSender.EMPTY;
+            }
+            return new ParticleSender.Single(particle, new ParticleViewer(origin, location, particle));
+        }
 
-        if (player.getLocation().distanceSquared(location) > particle.radiusSquared()) return;
-
-        player.spawnParticle(particle.getParticle(), location, 1,
-                particle.offX(), particle.offY(), particle.offZ(), particle.speed(), particle.getData());
-    }
-
-    public void playEffectToAll(final ParticleData particle, final ParticleData othersParticle, final Location location, final Player origin) {
+        final World world = origin.getWorld();
+        final List<ParticleViewer> viewers = new ArrayList<>();
         for (final Player player : Bukkit.getOnlinePlayers()) {
-            if (!location.getWorld().equals(player.getWorld())
-                    || player.getLocation().distanceSquared(location) > particle.radiusSquared()) continue;
+            if (!world.equals(player.getWorld())) {
+                continue;
+            }
+
+            final Location location = player.getLocation();
+            if (!isNear(location, radiusSquared, minimum, maximum)) {
+                continue;
+            }
 
             final boolean originalPlayer = player.getUniqueId().equals(origin.getUniqueId());
-            if (!originalPlayer && !canSeeOtherParticles(player)) continue;
+            if (!originalPlayer && !canSeeOtherParticles(player)) {
+                continue;
+            }
 
-            final ParticleData toSend = originalPlayer ? particle : othersParticle;
-            player.spawnParticle(toSend.getParticle(), location, 1,
-                    particle.offX(), particle.offY(), particle.offZ(), particle.speed(), toSend.getData());
+            viewers.add(new ParticleViewer(player, location, originalPlayer ? particle : othersParticle));
         }
+        return ParticleSender.of(particle, viewers);
+    }
+
+    private static boolean isNear(final Location location, final int radiusSquared, final Vector3D min, final Vector3D max) {
+        final double dx = dist(location.getX(), min.getX() - BOUNDS_MARGIN, max.getX() + BOUNDS_MARGIN);
+        final double dy = dist(location.getY(), min.getY() - BOUNDS_MARGIN, max.getY() + BOUNDS_MARGIN);
+        final double dz = dist(location.getZ(), min.getZ() - BOUNDS_MARGIN, max.getZ() + BOUNDS_MARGIN);
+        return dx * dx + dy * dy + dz * dz <= radiusSquared;
+    }
+
+    private static double dist(final double value, final double minimum, final double maximum) {
+        if (value < minimum) return minimum - value;
+        if (value > maximum) return value - maximum;
+        return 0;
     }
 
     private boolean canSeeOtherParticles(final Player player) {

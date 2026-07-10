@@ -22,7 +22,10 @@ import com.google.common.collect.Sets;
 import com.sk89q.worldedit.event.platform.CommandEvent;
 import com.sk89q.worldedit.util.eventbus.Subscribe;
 import eu.kennytv.worldeditsui.WorldEditSUIPlugin;
+import eu.kennytv.worldeditsui.user.User;
 import java.util.Locale;
+import java.util.Set;
+import java.util.UUID;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -30,9 +33,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
-
-import java.util.Set;
-import java.util.UUID;
 
 public final class WESelectionListener implements Listener {
 
@@ -44,7 +44,7 @@ public final class WESelectionListener implements Listener {
         this.plugin = plugin;
         plugin.getWorldEditPlugin().getWorldEdit().getEventBus().register(this);
         weCommands = Sets.newHashSet("pos1", "pos2", "chunk", "hpos1", "hpos2", "expand", "contract", "shift", "outset", "inset",
-                "copy", "cut", "rotate", "flip", "clearclipboard");
+            "copy", "cut", "rotate", "flip", "clearclipboard");
 
         try {
             wand = plugin.getRegionHelper().getWand(plugin.getWorldEditPlugin());
@@ -81,7 +81,10 @@ public final class WESelectionListener implements Listener {
             if (!type.endsWith("_AXE") || !type.contains("WOOD")) return;
         }
 
-        plugin.getUserManager().getUser(player).setExpireTimestamp(System.currentTimeMillis() + plugin.getSettings().getExpiresAfterMillis());
+        final User user = plugin.getUserManager().getUser(player);
+        if (user == null) return;
+
+        user.setExpireTimestamp(System.currentTimeMillis() + plugin.getSettings().getExpiresAfterMillis());
     }
 
     @Subscribe
@@ -96,9 +99,12 @@ public final class WESelectionListener implements Listener {
         if (arguments.isEmpty()) return;
 
         final String command = arguments.split(" ", 2)[0].toLowerCase(Locale.ROOT);
-        if (weCommands.stream().noneMatch(command::equals)) return;
+        if (!weCommands.contains(command)) return;
 
         final UUID uuid = event.getActor().getUniqueId();
-        plugin.getUserManager().getUser(uuid).setExpireTimestamp(System.currentTimeMillis() + plugin.getSettings().getExpiresAfterMillis());
+        final User user = plugin.getUserManager().getUser(uuid);
+        if (user == null) return; // e.g. console actor
+
+        user.setExpireTimestamp(System.currentTimeMillis() + plugin.getSettings().getExpiresAfterMillis());
     }
 }

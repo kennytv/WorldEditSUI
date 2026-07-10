@@ -4,7 +4,7 @@
 Sassy Minecraft plugin to show your current WorldEdit selection by displaying particles (which can be greatly customized in the plugin's config).
 Compared to other server plugins with similar functionality, it aims at a higher performance and lesser memory impact by having a quite simplistic approach to calculating vectors.
 
-You can read up on everything else and see examples on the [**Spigot page**](https://www.spigotmc.org/resources/worldeditsui.60726/).
+You can read up on everything else and see examples on the [**Hangar page**](https://hangar.papermc.io/kennytv/WorldEditSUI).
 
 ## Legacy support
 This branch supports Minecraft versions from 1.9 upwards.

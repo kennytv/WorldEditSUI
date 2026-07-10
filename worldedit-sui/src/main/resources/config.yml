@@ -6,12 +6,12 @@
 # Disable this if you run into concurreny errors.
 cache-calculated-positions: true
 
-# A list of all particles can be found here: https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Particle.html
+# A list of all particles can be found here: https://jd.papermc.io/paper/org/bukkit/Particle.html
 # Just note that newly introduced particles obviously won't work in older versions.
 # Shown for the selection you currently have.
 #
 # If you want to use a particle that requires extra data (REDSTONE, FALLING_DUST, BLOCK_DUST, BLOCK_CRACK, ITEM_CRACK),
-# you can read up on how to do that at the bottom of the plugin's Spigot page.
+# you can read up on how to do that at the bottom of the plugin page.
 # The same applies to per-particle view-distance, speed, and offsets.
 particle: FLAME
 # Shown for the clipboard (after using WorldEdit's //copy command).

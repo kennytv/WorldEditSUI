@@ -22,7 +22,8 @@ import com.sk89q.worldedit.regions.CylinderRegion;
 import com.sk89q.worldedit.regions.FlatRegion;
 import com.sk89q.worldedit.regions.Region;
 import eu.kennytv.worldeditsui.WorldEditSUIPlugin;
-import eu.kennytv.worldeditsui.compat.SimpleVector;
+import eu.kennytv.worldeditsui.compat.Vector3D;
+import eu.kennytv.worldeditsui.drawer.base.DrawContext;
 import eu.kennytv.worldeditsui.drawer.base.DrawedType;
 import eu.kennytv.worldeditsui.drawer.base.DrawerBase;
 import org.bukkit.Location;
@@ -38,7 +39,10 @@ public final class CylinderDrawer extends DrawerBase {
     public void draw(final Player player, final Region region, final DrawedType drawedType) {
         if (!hasValidSize(player, region)) return;
 
-        final SimpleVector radius = plugin.getRegionHelper().getRadius((CylinderRegion) region, 1.3, 1.3);
+        final DrawContext context = createContext(player, region, drawedType);
+        if (context == null) return;
+
+        final Vector3D radius = plugin.getRegionHelper().getRadius((CylinderRegion) region, 1.3, 1.3);
         final int width = (int) radius.getX();
         final int length = (int) radius.getZ();
         final int height = (int) radius.getY();
@@ -46,24 +50,24 @@ public final class CylinderDrawer extends DrawerBase {
         final int bottom = ((FlatRegion) region).getMinimumY();
         final int top = ((FlatRegion) region).getMaximumY() + 1;
 
-        final SimpleVector center = plugin.getRegionHelper().getCenter(region, 0.5, 0, 0.5);
+        final Vector3D center = plugin.getRegionHelper().getCenter(region, 0.5, 0, 0.5);
         final Location location = new Location(player.getWorld(), center.getX(), bottom, center.getZ());
         final double wideGrid = Math.PI / (settings.getParticlesPerBlock() * max * 2);
         final int heightSpace = (int) (settings.getParticleSpace() * height);
-        drawCurves(player, width, length, heightSpace == 0 ? height : height / heightSpace, location, wideGrid, heightSpace == 0 ? 1 : heightSpace);
+        drawCurves(context, width, length, heightSpace == 0 ? height : height / heightSpace, location, wideGrid, heightSpace == 0 ? 1 : heightSpace);
         location.setY(top);
-        drawCurves(player, width, length, 1, location, wideGrid, heightSpace == 0 ? 1 : heightSpace);
+        drawCurves(context, width, length, 1, location, wideGrid, heightSpace == 0 ? 1 : heightSpace);
 
         if (settings.hasAdvancedGrid(drawedType)) {
             location.setY(bottom);
             final double wideInterval = Math.PI / (settings.getParticlesPerGridBlock(drawedType) * max / 10D);
-            drawCurves(player, width, length, height * settings.getParticlesPerGridBlock(drawedType), location, wideInterval, settings.getParticleGridSpace(drawedType));
-            drawGrid(player, drawedType, width, length, top, location, true);
-            drawGrid(player, drawedType, length, width, top, location, false);
+            drawCurves(context, width, length, height * settings.getParticlesPerGridBlock(drawedType), location, wideInterval, settings.getParticleGridSpace(drawedType));
+            drawGrid(context, drawedType, width, length, top, location, true);
+            drawGrid(context, drawedType, length, width, top, location, false);
         }
     }
 
-    private void drawGrid(final Player player, final DrawedType drawedType, final int width, final int length, final int top, final Location location, final boolean xAxis) {
+    private void drawGrid(final DrawContext context, final DrawedType drawedType, final int width, final int length, final int top, final Location location, final boolean xAxis) {
         final double x = location.getX();
         final double z = location.getZ();
         final double bottom = location.getY();
@@ -98,9 +102,9 @@ public final class CylinderDrawer extends DrawerBase {
                 } else {
                     location.setX(location.getX() + settings.getParticleGridSpace(drawedType));
                 }
-                playEffect(location, player);
+                context.playEffect(location);
                 location.setY(top);
-                playEffect(location, player);
+                context.playEffect(location);
                 location.setY(bottom);
             }
 
@@ -118,14 +122,14 @@ public final class CylinderDrawer extends DrawerBase {
         }
     }
 
-    private void drawCurves(final Player player, final int width, final int length, final int ticks, final Location location, final double wideGrid, final double heightSpace) {
+    private void drawCurves(final DrawContext context, final int width, final int length, final int ticks, final Location location, final double wideGrid, final double heightSpace) {
         final double y = location.getY();
         for (double i = 0; i <= 2 * Math.PI; i += wideGrid) {
             final double x = width * Math.cos(i);
             final double z = length * Math.sin(i);
             location.add(x, -heightSpace, z);
             for (int j = 0; j < ticks; j++) {
-                playEffect(location.add(0, heightSpace, 0), player);
+                context.playEffect(location.add(0, heightSpace, 0));
             }
             location.subtract(x, 0, z).setY(y);
         }

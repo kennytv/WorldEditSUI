@@ -23,7 +23,11 @@ import eu.kennytv.worldeditsui.WorldEditSUIPlugin;
 import eu.kennytv.worldeditsui.compat.ProtectedRegionWrapper;
 import eu.kennytv.worldeditsui.drawer.base.DrawedType;
 import eu.kennytv.worldeditsui.user.User;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -31,11 +35,6 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
 
 public final class WESUICommand implements CommandExecutor, TabCompleter {
 
@@ -181,7 +180,7 @@ public final class WESUICommand implements CommandExecutor, TabCompleter {
             return list;
         } else if (args.length == 2) {
             if (sender instanceof Player && plugin.isWorldGuardEnabled()
-                    && args[0].equalsIgnoreCase("showregion") && sender.hasPermission("wesui.showregion")) {
+                && args[0].equalsIgnoreCase("showregion") && sender.hasPermission("wesui.showregion")) {
                 final Set<String> regionNames = plugin.getProtectedRegionHelper().getRegionNames(((Player) sender).getWorld());
                 return StringUtil.copyPartialMatches(args[1], regionNames, new ArrayList<>());
             }

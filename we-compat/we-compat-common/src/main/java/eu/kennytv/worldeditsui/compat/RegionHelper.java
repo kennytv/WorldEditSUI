@@ -20,6 +20,7 @@ package eu.kennytv.worldeditsui.compat;
 
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
+import com.sk89q.worldedit.regions.ConvexPolyhedralRegion;
 import com.sk89q.worldedit.regions.CylinderRegion;
 import com.sk89q.worldedit.regions.EllipsoidRegion;
 import com.sk89q.worldedit.regions.Polygonal2DRegion;
@@ -29,21 +30,21 @@ import org.bukkit.Material;
 
 public interface RegionHelper {
 
-    SimpleVector getRadius(EllipsoidRegion region);
+    Vector3D getRadius(EllipsoidRegion region);
 
-    SimpleVector getRadius(EllipsoidRegion region, double offX, double offY, double offZ);
+    Vector3D getRadius(EllipsoidRegion region, double offX, double offY, double offZ);
 
-    SimpleVector getRadius(CylinderRegion region, double offX, double offZ);
+    Vector3D getRadius(CylinderRegion region, double offX, double offZ);
 
-    SimpleVector getCenter(Region region);
+    Vector3D getCenter(Region region);
 
-    SimpleVector getCenter(Region region, double offX, double offY, double offZ);
+    Vector3D getCenter(Region region, double offX, double offY, double offZ);
 
-    SimpleVector getMinimumPoint(Region region);
+    Vector3D getMinimumPoint(Region region);
 
-    SimpleVector getMaximumPoint(Region region);
+    Vector3D getMaximumPoint(Region region);
 
-    SimpleVector getOrigin(Clipboard clipboard);
+    Vector3D getOrigin(Clipboard clipboard);
 
     Region transformAndReShift(ClipboardHolder holder, Region region);
 
@@ -51,5 +52,14 @@ public interface RegionHelper {
 
     Material getWand(WorldEditPlugin plugin);
 
-    Simple2DVector[] getPoints(Polygonal2DRegion region);
+    Vector2D[] getPoints(Polygonal2DRegion region);
+
+    /**
+     * @return the region's hull triangles, each as an array of its three vertices
+     */
+    Vector3D[][] getTriangles(ConvexPolyhedralRegion region);
+
+    int getTriangleCount(ConvexPolyhedralRegion region);
+
+    long getVolume(Region region);
 }

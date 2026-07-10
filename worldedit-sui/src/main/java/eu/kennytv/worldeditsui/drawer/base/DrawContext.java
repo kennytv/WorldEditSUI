@@ -16,35 +16,30 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package eu.kennytv.worldeditsui.compat;
+package eu.kennytv.worldeditsui.drawer.base;
 
-import java.util.HashMap;
-import java.util.Map;
+import eu.kennytv.worldeditsui.user.SelectionCache;
+import eu.kennytv.worldeditsui.util.ParticleSender;
+import org.bukkit.Location;
+import org.jetbrains.annotations.Nullable;
 
-public enum SelectionType {
+/**
+ * Shared context of a single draw batch.
+ */
+public final class DrawContext {
 
-    CUBOID("cuboid"),
-    SPHERE("sphere"),
-    ELLIPSOID("ellipsoid"),
-    CYLINDER("Cylinder"),
-    POLYGON("2Dx1D polygon"),
-    POLYHEDRON("Convex Polyhedron"),
-    NONE(null);
+    private final ParticleSender sender;
+    private final SelectionCache.Positions positions;
 
-    private static final Map<String, SelectionType> TYPES = new HashMap<>();
-    private final String key; // WE key, hence the inconsistent naming
-
-    SelectionType(final String key) {
-        this.key = key;
+    DrawContext(final ParticleSender sender, @Nullable final SelectionCache.Positions positions) {
+        this.sender = sender;
+        this.positions = positions;
     }
 
-    static {
-        for (final SelectionType type : SelectionType.values()) {
-            TYPES.put(type.key, type);
+    public void playEffect(final Location location) {
+        if (positions != null) {
+            positions.add(location.getX(), location.getY(), location.getZ());
         }
-    }
-
-    public static SelectionType fromKey(final String key) {
-        return TYPES.get(key);
+        sender.play(location);
     }
 }

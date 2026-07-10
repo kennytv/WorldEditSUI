@@ -18,14 +18,14 @@
 
 package eu.kennytv.worldeditsui.compat;
 
-public final class SimpleVector {
+import org.bukkit.util.NumberConversions;
+
+public final class Vector2D {
     private final double x;
-    private final double y;
     private final double z;
 
-    public SimpleVector(final double x, final double y, final double z) {
+    public Vector2D(final double x, final double z) {
         this.x = x;
-        this.y = y;
         this.z = z;
     }
 
@@ -33,32 +33,19 @@ public final class SimpleVector {
         return x;
     }
 
-    public double getY() {
-        return y;
-    }
-
     public double getZ() {
         return z;
     }
 
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        final SimpleVector that = (SimpleVector) o;
-        return this.x == that.x && this.y == that.y && this.z == that.z;
+    public double length() {
+        return Math.sqrt(lengthSquared());
     }
 
-    @Override
-    public int hashCode() {
-        int result;
-        long temp;
-        temp = Double.doubleToLongBits(x);
-        result = (int) (temp ^ (temp >>> 32));
-        temp = Double.doubleToLongBits(y);
-        result = 31 * result + (int) (temp ^ (temp >>> 32));
-        temp = Double.doubleToLongBits(z);
-        result = 31 * result + (int) (temp ^ (temp >>> 32));
-        return result;
+    public double lengthSquared() {
+        return NumberConversions.square(this.x) + NumberConversions.square(this.z);
+    }
+
+    public Vector2D subtract(final Vector2D vector) {
+        return new Vector2D(this.x - vector.x, this.z - vector.z);
     }
 }

@@ -20,7 +20,8 @@ package eu.kennytv.worldeditsui.drawer;
 
 import com.sk89q.worldedit.regions.Region;
 import eu.kennytv.worldeditsui.WorldEditSUIPlugin;
-import eu.kennytv.worldeditsui.compat.SimpleVector;
+import eu.kennytv.worldeditsui.compat.Vector3D;
+import eu.kennytv.worldeditsui.drawer.base.DrawContext;
 import eu.kennytv.worldeditsui.drawer.base.DrawedType;
 import eu.kennytv.worldeditsui.drawer.base.DrawerBase;
 import org.bukkit.Location;
@@ -37,10 +38,13 @@ public final class CuboidDrawer extends DrawerBase {
     public void draw(final Player player, final Region region, final DrawedType drawedType) {
         if (!hasValidSize(player, region)) return;
 
+        final DrawContext context = createContext(player, region, drawedType);
+        if (context == null) return;
+
         final double width = region.getWidth();
         final double length = region.getLength();
         final double height = region.getHeight();
-        final SimpleVector minimumVector = plugin.getRegionHelper().getMinimumPoint(region);
+        final Vector3D minimumVector = plugin.getRegionHelper().getMinimumPoint(region);
         final Location minimumPoint = new Location(player.getWorld(), minimumVector.getX(), minimumVector.getY(), minimumVector.getZ());
 
         final double maxTicksX = width * settings.getParticlesPerBlock() - 1;
@@ -60,14 +64,14 @@ public final class CuboidDrawer extends DrawerBase {
             maxTopGridTicksZ = width * settings.getParticlesPerGridBlock(drawedType) - 1;
         }
 
-        drawLines(player, minimumPoint.clone(), gridSpaceX, topGridSpace, maxTicksX, maxGridTicks, maxTopGridTicksX, height, true, drawedType);
-        drawLines(player, minimumPoint.clone().add(0, 0, length), gridSpaceX, 0, maxTicksX, maxGridTicks, 0, height, true, drawedType);
-        drawLines(player, minimumPoint.clone(), gridSpaceZ, topGridSpace, maxTicksZ, maxGridTicks, maxTopGridTicksZ, height, false, drawedType);
-        drawLines(player, minimumPoint.clone().add(width, 0, 0), gridSpaceZ, 0, maxTicksZ, maxGridTicks, 0, height, false, drawedType);
-        drawPillarsAndGrid(player, minimumPoint, gridSpaceX, gridSpaceZ, height, width, length, drawedType);
+        drawLines(context, minimumPoint.clone(), gridSpaceX, topGridSpace, maxTicksX, maxGridTicks, maxTopGridTicksX, height, true, drawedType);
+        drawLines(context, minimumPoint.clone().add(0, 0, length), gridSpaceX, 0, maxTicksX, maxGridTicks, 0, height, true, drawedType);
+        drawLines(context, minimumPoint.clone(), gridSpaceZ, topGridSpace, maxTicksZ, maxGridTicks, maxTopGridTicksZ, height, false, drawedType);
+        drawLines(context, minimumPoint.clone().add(width, 0, 0), gridSpaceZ, 0, maxTicksZ, maxGridTicks, 0, height, false, drawedType);
+        drawPillarsAndGrid(context, minimumPoint, gridSpaceX, gridSpaceZ, height, width, length, drawedType);
     }
 
-    private void drawLines(final Player player, final Location location, final int gridSpace, final int topGridSpace,
+    private void drawLines(final DrawContext context, final Location location, final int gridSpace, final int topGridSpace,
                            final double maxTicks, final double maxGridTicks, final double maxTopGridTicks,
                            final double height, final boolean x, final DrawedType drawedType) {
         // Lower row (with vertical grid)
@@ -80,11 +84,11 @@ public final class CuboidDrawer extends DrawerBase {
                     final Location clone = location.clone();
                     for (double j = 0; j < maxGridTicks; j++) {
                         clone.add(0, settings.getParticleGridSpace(drawedType), 0);
-                        playEffect(clone, player, drawedType);
+                        context.playEffect(clone);
                     }
                 }
                 if (topGridSpace != 0 && blocks % topGridSpace == 0 && i != 0) {
-                    tickGrid(player, location, maxTopGridTicks, x, drawedType);
+                    tickGrid(context, location, maxTopGridTicks, x, drawedType);
                 }
                 blocks++;
             }
@@ -94,7 +98,7 @@ public final class CuboidDrawer extends DrawerBase {
             } else {
                 location.add(0, 0, settings.getParticleSpace());
             }
-            playEffect(location, player, drawedType);
+            context.playEffect(location);
         }
 
         // Upper row
@@ -104,7 +108,7 @@ public final class CuboidDrawer extends DrawerBase {
         blocks = 0;
         for (double i = 0; i < maxTicks; i++) {
             if (settings.hasAdvancedGrid(drawedType) && topGridSpace != 0 && blocks++ % topGridSpace == 0 && i != 0) {
-                tickGrid(player, location, maxTopGridTicks, x, drawedType);
+                tickGrid(context, location, maxTopGridTicks, x, drawedType);
             }
 
             if (x) {
@@ -112,22 +116,22 @@ public final class CuboidDrawer extends DrawerBase {
             } else {
                 location.add(0, 0, settings.getParticleSpace());
             }
-            playEffect(location, player, drawedType);
+            context.playEffect(location);
         }
     }
 
-    private void tickGrid(final Player player, final Location location, final double maxTopGridTicks, final boolean x, final DrawedType drawedType) {
+    private void tickGrid(final DrawContext context, final Location location, final double maxTopGridTicks, final boolean x, final DrawedType drawedType) {
         final Location clone = location.clone();
         for (double j = 0; j < maxTopGridTicks; j++) {
             if (x)
                 clone.add(0, 0, settings.getParticleGridSpace(drawedType));
             else
                 clone.add(settings.getParticleGridSpace(drawedType), 0, 0);
-            playEffect(clone, player, drawedType);
+            context.playEffect(clone);
         }
     }
 
-    private void drawPillarsAndGrid(final Player player, final Location minimum, final int gridSpaceX, final int gridSpaceZ,
+    private void drawPillarsAndGrid(final DrawContext context, final Location minimum, final int gridSpaceX, final int gridSpaceZ,
                                     final double height, final double width, final double length, final DrawedType drawedType) {
         final boolean advancedGridEnabled = settings.hasAdvancedGrid(drawedType);
 
@@ -138,22 +142,22 @@ public final class CuboidDrawer extends DrawerBase {
         final double maxTicks = height * settings.getParticlesPerBlock();
         final double maxGridTicksX = advancedGridEnabled ? width * settings.getParticlesPerGridBlock(drawedType) - 1 : 0;
         final double maxGridTicksZ = advancedGridEnabled ? length * settings.getParticlesPerGridBlock(drawedType) - 1 : 0;
-        setGrid(player, minimum, gridSpaceX, maxTicks, maxGridTicksX, gridSpace, 0, drawedType);
+        setGrid(context, minimum, gridSpaceX, maxTicks, maxGridTicksX, gridSpace, 0, drawedType);
         minimum.setX(x + width);
         minimum.setY(y);
         minimum.setZ(z + length);
-        setGrid(player, minimum, gridSpaceX, maxTicks, maxGridTicksX, -gridSpace, 0, drawedType);
+        setGrid(context, minimum, gridSpaceX, maxTicks, maxGridTicksX, -gridSpace, 0, drawedType);
         minimum.setX(x + width);
         minimum.setY(y);
         minimum.setZ(z);
-        setGrid(player, minimum, gridSpaceZ, maxTicks, maxGridTicksZ, 0, gridSpace, drawedType);
+        setGrid(context, minimum, gridSpaceZ, maxTicks, maxGridTicksZ, 0, gridSpace, drawedType);
         minimum.setX(x);
         minimum.setY(y);
         minimum.setZ(z + length);
-        setGrid(player, minimum, gridSpaceZ, maxTicks, maxGridTicksZ, 0, -gridSpace, drawedType);
+        setGrid(context, minimum, gridSpaceZ, maxTicks, maxGridTicksZ, 0, -gridSpace, drawedType);
     }
 
-    private void setGrid(final Player player, final Location location, final int gridSpace, final double maxTicks, final double maxGridTicks,
+    private void setGrid(final DrawContext context, final Location location, final int gridSpace, final double maxTicks, final double maxGridTicks,
                          final double xAddition, final double zAddition, final DrawedType drawedType) {
         int blocks = 0;
         for (int i = 0; i < maxTicks; i++) {
@@ -162,13 +166,13 @@ public final class CuboidDrawer extends DrawerBase {
                 final Location clone = location.clone();
                 for (double j = 0; j < maxGridTicks; j++) {
                     clone.add(xAddition, 0, zAddition);
-                    playEffect(clone, player, drawedType);
+                    context.playEffect(clone);
                 }
             }
 
             // Pillar
             location.add(0, settings.getParticleSpace(), 0);
-            playEffect(location, player, drawedType);
+            context.playEffect(location);
         }
     }
 }

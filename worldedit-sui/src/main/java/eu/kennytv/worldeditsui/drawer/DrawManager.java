@@ -21,13 +21,12 @@ package eu.kennytv.worldeditsui.drawer;
 import eu.kennytv.worldeditsui.WorldEditSUIPlugin;
 import eu.kennytv.worldeditsui.compat.SelectionType;
 import eu.kennytv.worldeditsui.drawer.base.Drawer;
-
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 
 public final class DrawManager {
 
-    private final Map<SelectionType, Drawer> drawers = new HashMap<>();
+    private final Map<SelectionType, Drawer> drawers = new EnumMap<>(SelectionType.class);
 
     public DrawManager(final WorldEditSUIPlugin plugin) {
         drawers.put(SelectionType.CUBOID, new CuboidDrawer(plugin));
@@ -36,7 +35,7 @@ public final class DrawManager {
         drawers.put(SelectionType.ELLIPSOID, ellipsoidDrawer);
         drawers.put(SelectionType.CYLINDER, new CylinderDrawer(plugin));
         drawers.put(SelectionType.POLYGON, new PolygonalDrawer(plugin));
-        //TODO "Convex Polyhedron"?
+        drawers.put(SelectionType.POLYHEDRON, new PolyhedralDrawer(plugin));
         //TODO FAWE regions?
     }
 
